@@ -1,12 +1,29 @@
 
 import { Button } from "@/components/ui/button";
-import { Bell, Menu, Search, User } from "lucide-react";
+import { Bell, LogOut, Menu, Search, User } from "lucide-react";
+import { useAuth } from "@/context/auth";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface NavbarProps {
   onOpenSidebar: () => void;
 }
 
 const Navbar = ({ onOpenSidebar }: NavbarProps) => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+      navigate("/auth");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 w-full border-b bg-white/80 backdrop-blur-sm dark:bg-black/20 dark:border-slate-800">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -40,6 +57,11 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
           <Button variant="ghost" size="icon" className="rounded-full">
             <User className="h-5 w-5" />
             <span className="sr-only">Profile</span>
+          </Button>
+          
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+            <LogOut className="h-5 w-5" />
+            <span className="sr-only">Logout</span>
           </Button>
         </div>
       </div>

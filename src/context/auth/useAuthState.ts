@@ -14,6 +14,8 @@ export const useAuthState = (
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession);
+        
+        // Update session and user state
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
@@ -57,5 +59,5 @@ export const useAuthState = (
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [setLoading, setError, setSession, setUser, getProfile]);
 };
