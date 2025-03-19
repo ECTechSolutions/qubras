@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import ListingModal from "@/components/modals/ListingModal";
 import { Listing } from "@/features/listings/types";
 import { useListingsQuery } from "@/features/listings/hooks/useListingsQuery";

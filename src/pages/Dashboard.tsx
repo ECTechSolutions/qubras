@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
