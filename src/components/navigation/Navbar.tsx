@@ -15,6 +15,7 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
 
   const handleLogout = async () => {
     try {
+      console.log("Signing out");
       await signOut();
       toast.success("Logged out successfully");
       navigate("/auth");

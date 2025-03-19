@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/context/auth";
 import { ThemeProvider } from "next-themes";
 import MainLayout from "@/components/layouts/MainLayout";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -25,25 +24,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-full max-w-md" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Skeleton className="h-[200px] rounded-lg" />
-            <Skeleton className="h-[200px] rounded-lg" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Skeleton className="h-24 rounded-md" />
-            <Skeleton className="h-24 rounded-md" />
-            <Skeleton className="h-24 rounded-md" />
-          </div>
-        </div>
-      </div>
-    );
+    // Simple loading indicator instead of skeleton
+    return <div className="p-8 flex justify-center items-center">Loading...</div>;
   }
   
   if (!user) {

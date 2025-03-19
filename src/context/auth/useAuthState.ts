@@ -10,6 +10,9 @@ export const useAuthState = (
   getProfile: (userId: string) => Promise<void>
 ) => {
   useEffect(() => {
+    // Initialize loading state
+    setLoading(true);
+    
     // Set up supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
@@ -23,7 +26,7 @@ export const useAuthState = (
           await getProfile(currentSession.user.id);
         }
         
-        // Always set loading to false after auth state change is processed
+        // Set loading to false after auth state change is processed
         setLoading(false);
       }
     );
@@ -31,7 +34,6 @@ export const useAuthState = (
     // Get initial session
     const initializeAuth = async () => {
       try {
-        setLoading(true); // Ensure loading is true at the start
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -49,7 +51,7 @@ export const useAuthState = (
       } catch (err) {
         console.error("Error initializing auth:", err);
       } finally {
-        // Ensure loading is set to false when auth initialization is complete
+        // Ensure loading is always set to false when auth initialization completes
         setLoading(false);
       }
     };
