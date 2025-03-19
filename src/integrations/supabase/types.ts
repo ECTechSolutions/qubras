@@ -12,12 +12,16 @@ export type Database = {
       listings: {
         Row: {
           budget_range: string | null
+          business_type: string | null
           created_at: string
           description: string
           duration: string | null
           goals: string[] | null
           id: string
           industry: string | null
+          location: string | null
+          partnership_type: string
+          resources_to_share: string[] | null
           status: string | null
           target_audience: string | null
           title: string
@@ -26,12 +30,16 @@ export type Database = {
         }
         Insert: {
           budget_range?: string | null
+          business_type?: string | null
           created_at?: string
           description: string
           duration?: string | null
           goals?: string[] | null
           id?: string
           industry?: string | null
+          location?: string | null
+          partnership_type?: string
+          resources_to_share?: string[] | null
           status?: string | null
           target_audience?: string | null
           title: string
@@ -40,12 +48,16 @@ export type Database = {
         }
         Update: {
           budget_range?: string | null
+          business_type?: string | null
           created_at?: string
           description?: string
           duration?: string | null
           goals?: string[] | null
           id?: string
           industry?: string | null
+          location?: string | null
+          partnership_type?: string
+          resources_to_share?: string[] | null
           status?: string | null
           target_audience?: string | null
           title?: string

@@ -10,6 +10,11 @@ export interface Listing {
   company?: string;
   companyLogo?: string;
   postedAt?: string;
+  partnership_type?: string;
+  location?: string;
+  target_audience?: string;
+  resources_to_share?: string[];
+  business_type?: string;
 }
 
 export interface ListingCardData {
@@ -22,6 +27,11 @@ export interface ListingCardData {
   duration: string;
   categories: string[];
   postedAt: string;
+  partnership_type: string;
+  location?: string;
+  target_audience?: string;
+  resources_to_share?: string[];
+  business_type?: string;
 }
 
 export interface ListingFormData {
@@ -30,4 +40,9 @@ export interface ListingFormData {
   budget: string;
   duration: string;
   categories: string[];
+  partnership_type: string;
+  location?: string;
+  target_audience?: string;
+  resources_to_share?: string[];
+  business_type?: string;
 }

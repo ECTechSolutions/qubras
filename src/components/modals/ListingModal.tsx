@@ -35,7 +35,7 @@ const ListingModal = ({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit Listing" : "Create New Listing"}
@@ -48,7 +48,18 @@ const ListingModal = ({
         </DialogHeader>
         
         <ListingForm
-          initialData={initialData}
+          initialData={{
+            title: initialData?.title || "",
+            description: initialData?.description || "",
+            budget: initialData?.budget || "",
+            duration: initialData?.duration || "",
+            categories: initialData?.categories || [],
+            partnership_type: initialData?.partnership_type || "offering",
+            location: initialData?.location || "",
+            target_audience: initialData?.target_audience || "",
+            resources_to_share: initialData?.resources_to_share || [],
+            business_type: initialData?.business_type || ""
+          }}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
           isEdit={isEdit}

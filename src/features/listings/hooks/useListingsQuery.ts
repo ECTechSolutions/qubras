@@ -64,6 +64,11 @@ export const useListingsQuery = (userId: string | undefined) => {
             companyLogo: profile?.avatar_url || "",
             user_id: listing.user_id,
             postedAt: new Date(listing.created_at).toLocaleDateString(),
+            partnership_type: listing.partnership_type || "offering",
+            location: listing.location,
+            target_audience: listing.target_audience,
+            resources_to_share: listing.resources_to_share || [],
+            business_type: listing.business_type
           };
         }) as Listing[];
 

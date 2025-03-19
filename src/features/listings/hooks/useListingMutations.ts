@@ -18,6 +18,11 @@ export const useListingMutations = (userId: string | undefined) => {
         duration: newListing.duration,
         goals: newListing.categories,
         user_id: userId,
+        partnership_type: newListing.partnership_type,
+        location: newListing.location,
+        target_audience: newListing.target_audience,
+        resources_to_share: newListing.resources_to_share,
+        business_type: newListing.business_type
       }).select();
 
       if (error) {
@@ -49,6 +54,11 @@ export const useListingMutations = (userId: string | undefined) => {
           budget_range: updatedListing.budget,
           duration: updatedListing.duration,
           goals: updatedListing.categories,
+          partnership_type: updatedListing.partnership_type,
+          location: updatedListing.location,
+          target_audience: updatedListing.target_audience,
+          resources_to_share: updatedListing.resources_to_share,
+          business_type: updatedListing.business_type
         })
         .eq("id", listingId)
         .eq("user_id", userId)

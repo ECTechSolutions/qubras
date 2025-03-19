@@ -69,6 +69,10 @@ const ListingGrid = ({
     duration: listing.duration,
     categories: listing.goals,
     postedAt: listing.postedAt || "",
+    partnership_type: listing.partnership_type || "offering",
+    location: listing.location,
+    target_audience: listing.target_audience,
+    business_type: listing.business_type
   });
 
   return (
