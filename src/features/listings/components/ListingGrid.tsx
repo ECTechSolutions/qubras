@@ -25,6 +25,8 @@ const ListingGrid = ({
   onEdit,
   onDelete,
 }: ListingGridProps) => {
+  console.log("ListingGrid render:", { listings: listings.length, isLoading });
+  
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -40,12 +42,15 @@ const ListingGrid = ({
   if (listings.length === 0) {
     return (
       <div className="text-center py-12 bg-muted/50 rounded-lg">
-        <p className="text-muted-foreground">No listings found.</p>
+        <p className="text-muted-foreground mb-2">No listings found.</p>
         {onCreateClick && (
           <Button
             variant="outline"
             className="mt-4"
-            onClick={onCreateClick}
+            onClick={() => {
+              console.log("Create first listing button clicked");
+              onCreateClick();
+            }}
           >
             Create your first listing
           </Button>
@@ -72,8 +77,14 @@ const ListingGrid = ({
         <div key={listing.id} className={`relative ${showEditControls ? 'group' : ''}`}>
           <ListingCard
             listing={mapToCardData(listing)}
-            onView={() => onView(listing.id)}
-            onContact={() => onContact(listing.id)}
+            onView={() => {
+              console.log("View listing clicked:", listing.id);
+              onView(listing.id);
+            }}
+            onContact={() => {
+              console.log("Contact listing clicked:", listing.id);
+              onContact(listing.id);
+            }}
           />
           
           {showEditControls && onEdit && onDelete && (
@@ -82,14 +93,20 @@ const ListingGrid = ({
                 variant="outline"
                 size="sm"
                 className="mr-2"
-                onClick={() => onEdit(listing)}
+                onClick={() => {
+                  console.log("Edit listing clicked:", listing.id);
+                  onEdit(listing);
+                }}
               >
                 Edit
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => onDelete(listing.id)}
+                onClick={() => {
+                  console.log("Delete listing clicked:", listing.id);
+                  onDelete(listing.id);
+                }}
               >
                 Delete
               </Button>

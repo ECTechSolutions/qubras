@@ -11,6 +11,7 @@ export const useListingsQuery = (userId: string | undefined) => {
       console.log("Fetching listings for userId:", userId);
       
       try {
+        // Explicitly fetch all listings without filtering by user_id
         const { data, error } = await supabase
           .from("listings")
           .select("*, profiles(name, company, avatar_url)")
@@ -24,12 +25,12 @@ export const useListingsQuery = (userId: string | undefined) => {
 
         console.log("Listings data fetched:", data);
         
-        if (!data || data.length === 0) {
-          console.log("No listings found");
+        if (!data) {
+          console.log("No listings data returned");
           return [];
         }
         
-        return data.map((listing: any) => ({
+        const mappedListings = data.map((listing: any) => ({
           id: listing.id,
           title: listing.title,
           description: listing.description,
@@ -41,14 +42,17 @@ export const useListingsQuery = (userId: string | undefined) => {
           user_id: listing.user_id,
           postedAt: new Date(listing.created_at).toLocaleDateString(),
         })) as Listing[];
+
+        console.log("Mapped listings:", mappedListings.length, mappedListings);
+        return mappedListings;
       } catch (error) {
         console.error("Unexpected error in listings query:", error);
         toast.error("An unexpected error occurred while fetching listings");
         return [];
       }
     },
-    // Always run the query regardless of user state
-    // enabled: !!userId,
+    // Ensure the query runs immediately
+    enabled: true,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

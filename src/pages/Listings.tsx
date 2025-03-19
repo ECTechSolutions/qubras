@@ -16,13 +16,24 @@ const Listings = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user } = useAuth();
   
-  // Enable the query regardless of user state to troubleshoot loading issue
-  const { data: listings = [], isLoading, isError, refetch } = useListingsQuery(user?.id);
+  const { 
+    data: listings = [], 
+    isLoading, 
+    isError, 
+    refetch 
+  } = useListingsQuery(user?.id);
   
-  console.log("Listings page render:", { user, listings, isLoading, isError });
+  console.log("Listings page render:", { 
+    user, 
+    listings: listings?.length || 0, 
+    isLoading, 
+    isError,
+    createModalOpen: isCreateModalOpen
+  });
   
-  // Attempt to refetch data when component mounts or user changes
+  // Refetch when component mounts or user changes
   useEffect(() => {
+    console.log("Listings page mounted or user changed, refetching...");
     refetch();
   }, [user, refetch]);
   
@@ -33,11 +44,23 @@ const Listings = () => {
   } = useListingMutations(user?.id);
 
   const handleCreateListing = (data: any) => {
-    createListingMutation.mutate(data);
+    console.log("Creating listing with data:", data);
+    if (!user) {
+      toast.error("You must be logged in to create a listing");
+      return;
+    }
+    
+    createListingMutation.mutate(data, {
+      onSuccess: () => {
+        console.log("Listing created successfully");
+        refetch();
+      }
+    });
   };
 
   const handleUpdateListing = (data: any) => {
     if (!selectedListing) return;
+    console.log("Updating listing:", selectedListing.id, data);
     updateListingMutation.mutate({ 
       listingId: selectedListing.id, 
       updatedListing: data 
@@ -46,24 +69,29 @@ const Listings = () => {
 
   const handleDeleteListing = (id: string) => {
     if (window.confirm("Are you sure you want to delete this listing?")) {
+      console.log("Deleting listing:", id);
       deleteListingMutation.mutate(id);
     }
   };
 
   const handleEditListing = (listing: Listing) => {
+    console.log("Editing listing:", listing.id);
     setSelectedListing(listing);
     setIsEditModalOpen(true);
   };
 
   const handleViewListing = (id: string) => {
+    console.log("Viewing listing:", id);
     const listing = listings.find((l) => l.id === id);
     setSelectedListing(listing || null);
   };
 
   const handleContactListing = (id: string) => {
+    console.log("Contacting listing:", id);
     toast.info("Contact functionality coming soon!");
   };
 
+  // Filter listings based on search query
   const filteredListings = listings.filter((listing) => {
     return (
       listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -72,7 +100,11 @@ const Listings = () => {
     );
   });
 
+  // Get only the current user's listings
   const myListings = listings.filter((listing) => listing.user_id === user?.id);
+  
+  console.log("Filtered listings:", filteredListings.length);
+  console.log("My listings:", myListings.length);
 
   if (isError) {
     return (
@@ -98,7 +130,10 @@ const Listings = () => {
       <ListingsHeader 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        onCreateClick={() => setIsCreateModalOpen(true)}
+        onCreateClick={() => {
+          console.log("Create button clicked");
+          setIsCreateModalOpen(true);
+        }}
       />
 
       <ListingsTabs 
@@ -107,14 +142,20 @@ const Listings = () => {
         isLoading={isLoading}
         onView={handleViewListing}
         onContact={handleContactListing}
-        onCreateClick={() => setIsCreateModalOpen(true)}
+        onCreateClick={() => {
+          console.log("Create button clicked from tabs");
+          setIsCreateModalOpen(true);
+        }}
         onEdit={handleEditListing}
         onDelete={handleDeleteListing}
       />
 
       <ListingModal 
         open={isCreateModalOpen} 
-        onOpenChange={setIsCreateModalOpen}
+        onOpenChange={(open) => {
+          console.log("Create modal state changed:", open);
+          setIsCreateModalOpen(open);
+        }}
         onSubmit={handleCreateListing}
       />
 

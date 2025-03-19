@@ -29,7 +29,13 @@ const ListingsHeader = ({ searchQuery, setSearchQuery, onCreateClick }: Listings
             className="pl-9"
           />
         </div>
-        <Button onClick={onCreateClick} className="gap-1 bg-qubras-600 hover:bg-qubras-700">
+        <Button 
+          onClick={() => {
+            console.log("Create button clicked in header");
+            onCreateClick();
+          }} 
+          className="gap-1 bg-qubras-600 hover:bg-qubras-700"
+        >
           <Plus className="h-4 w-4" />
           Create Listing
         </Button>
