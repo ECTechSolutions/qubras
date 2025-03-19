@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import ListingModal from "@/components/modals/ListingModal";
@@ -17,9 +17,14 @@ const Listings = () => {
   const { user } = useAuth();
   
   // Enable the query regardless of user state to troubleshoot loading issue
-  const { data: listings = [], isLoading } = useListingsQuery(user?.id);
+  const { data: listings = [], isLoading, isError, refetch } = useListingsQuery(user?.id);
   
-  console.log("Listings page render:", { user, listings, isLoading });
+  console.log("Listings page render:", { user, listings, isLoading, isError });
+  
+  // Attempt to refetch data when component mounts or user changes
+  useEffect(() => {
+    refetch();
+  }, [user, refetch]);
   
   const { 
     createListingMutation, 
@@ -68,6 +73,25 @@ const Listings = () => {
   });
 
   const myListings = listings.filter((listing) => listing.user_id === user?.id);
+
+  if (isError) {
+    return (
+      <div className="container py-8">
+        <div className="text-center py-12 bg-destructive/10 rounded-lg">
+          <h2 className="text-lg font-semibold mb-2">Error loading listings</h2>
+          <p className="text-muted-foreground mb-4">
+            There was a problem fetching the listings data.
+          </p>
+          <button 
+            onClick={() => refetch()} 
+            className="px-4 py-2 bg-primary text-white rounded-md"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">

@@ -10,33 +10,46 @@ export const useListingsQuery = (userId: string | undefined) => {
     queryFn: async () => {
       console.log("Fetching listings for userId:", userId);
       
-      const { data, error } = await supabase
-        .from("listings")
-        .select("*, profiles(name, company, avatar_url)")
-        .order("created_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("listings")
+          .select("*, profiles(name, company, avatar_url)")
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching listings:", error);
-        toast.error("Failed to fetch listings");
-        throw error;
+        if (error) {
+          console.error("Error fetching listings:", error);
+          toast.error("Failed to fetch listings");
+          throw error;
+        }
+
+        console.log("Listings data fetched:", data);
+        
+        if (!data || data.length === 0) {
+          console.log("No listings found");
+          return [];
+        }
+        
+        return data.map((listing: any) => ({
+          id: listing.id,
+          title: listing.title,
+          description: listing.description,
+          budget_range: listing.budget_range,
+          duration: listing.duration,
+          goals: listing.goals || [],
+          company: listing.profiles?.company || "Unknown Company",
+          companyLogo: listing.profiles?.avatar_url || "",
+          user_id: listing.user_id,
+          postedAt: new Date(listing.created_at).toLocaleDateString(),
+        })) as Listing[];
+      } catch (error) {
+        console.error("Unexpected error in listings query:", error);
+        toast.error("An unexpected error occurred while fetching listings");
+        return [];
       }
-
-      console.log("Listings data fetched:", data);
-      
-      return data.map((listing: any) => ({
-        id: listing.id,
-        title: listing.title,
-        description: listing.description,
-        budget_range: listing.budget_range,
-        duration: listing.duration,
-        goals: listing.goals || [],
-        company: listing.profiles?.company || "Unknown Company",
-        companyLogo: listing.profiles?.avatar_url || "",
-        user_id: listing.user_id,
-        postedAt: new Date(listing.created_at).toLocaleDateString(),
-      })) as Listing[];
     },
-    // Remove enabled condition to ensure the query always runs
+    // Always run the query regardless of user state
     // enabled: !!userId,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
