@@ -13,6 +13,7 @@ import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
 import Matches from "@/pages/Matches";
+import Listings from "@/pages/Listings";
 // We'll add more pages as needed in future updates
 
 const queryClient = new QueryClient();
@@ -71,7 +72,7 @@ const App = () => (
                   path="/listings" 
                   element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <Listings />
                     </ProtectedRoute>
                   } 
                 />
