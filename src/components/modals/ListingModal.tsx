@@ -27,7 +27,9 @@ const ListingModal = ({
   
   const handleSubmit = (data: any) => {
     console.log("ListingModal form submitted:", data);
-    onSubmit?.(data);
+    if (onSubmit) {
+      onSubmit(data);
+    }
     onOpenChange(false);
   };
   
