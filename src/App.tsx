@@ -12,6 +12,7 @@ import MainLayout from "@/components/layouts/MainLayout";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
+import Matches from "@/pages/Matches";
 // We'll add more pages as needed in future updates
 
 const queryClient = new QueryClient();
@@ -57,12 +58,11 @@ const App = () => (
                   } 
                 />
 
-                {/* These routes will be implemented in future updates */}
                 <Route 
                   path="/matches" 
                   element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <Matches />
                     </ProtectedRoute>
                   } 
                 />
