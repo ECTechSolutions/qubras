@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log("Auth state changed:", event, currentSession);
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
@@ -64,15 +65,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Get initial session
     const initializeAuth = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setUser(initialSession?.user || null);
-      
-      if (initialSession?.user) {
-        await getProfile(initialSession.user.id);
+      try {
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          setError(error.message);
+        } else {
+          console.log("Initial session:", initialSession);
+          setSession(initialSession);
+          setUser(initialSession?.user || null);
+          
+          if (initialSession?.user) {
+            await getProfile(initialSession.user.id);
+          }
+        }
+      } catch (err) {
+        console.error("Error initializing auth:", err);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     initializeAuth();
@@ -84,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const getProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -96,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
+      console.log("Profile data:", data);
       setProfile(data as Profile);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -108,16 +122,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
+      console.log("Signing in with email:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        console.error("Sign in error:", error);
         setError(error.message);
+        toast.error(error.message);
         return Promise.reject(error);
       }
       
+      console.log("Sign in successful:", data);
       setSession(data.session);
       setUser(data.user);
       
@@ -128,7 +146,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return Promise.resolve();
     } catch (err) {
       const authError = err as AuthError;
+      console.error("Sign in exception:", authError);
       setError(authError.message);
+      toast.error(authError.message);
       return Promise.reject(authError);
     } finally {
       setLoading(false);
@@ -140,6 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
+      console.log("Signing up with email:", email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -152,10 +173,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (error) {
+        console.error("Sign up error:", error);
         setError(error.message);
+        toast.error(error.message);
         return Promise.reject(error);
       }
       
+      console.log("Sign up successful:", data);
       // In Supabase, the user isn't fully signed in until email confirmation
       // depending on your auth settings
       toast.success("Registration successful! Please check your email to confirm your account.");
@@ -163,7 +187,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return Promise.resolve();
     } catch (err) {
       const authError = err as AuthError;
+      console.error("Sign up exception:", authError);
       setError(authError.message);
+      toast.error(authError.message);
       return Promise.reject(authError);
     } finally {
       setLoading(false);
@@ -174,13 +200,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
+      console.log("Signing out");
       const { error } = await supabase.auth.signOut();
       
       if (error) {
+        console.error("Sign out error:", error);
         setError(error.message);
+        toast.error(error.message);
         return Promise.reject(error);
       }
       
+      console.log("Sign out successful");
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -188,7 +218,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return Promise.resolve();
     } catch (err) {
       const authError = err as AuthError;
+      console.error("Sign out exception:", authError);
       setError(authError.message);
+      toast.error(authError.message);
       return Promise.reject(authError);
     } finally {
       setLoading(false);
@@ -200,21 +232,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
+      console.log(`Signing in with ${provider}`);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
       });
       
       if (error) {
+        console.error(`${provider} sign in error:`, error);
         setError(error.message);
+        toast.error(error.message);
         return Promise.reject(error);
       }
       
+      console.log(`${provider} sign in initiated:`, data);
       // The actual auth happens after redirect, so we don't update state here
       
       return Promise.resolve();
     } catch (err) {
       const authError = err as AuthError;
+      console.error(`${provider} sign in exception:`, authError);
       setError(authError.message);
+      toast.error(authError.message);
       return Promise.reject(authError);
     } finally {
       setLoading(false);
@@ -226,21 +267,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
+      console.log("Resetting password for:", email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth?reset=true`,
       });
       
       if (error) {
+        console.error("Reset password error:", error);
         setError(error.message);
+        toast.error(error.message);
         return Promise.reject(error);
       }
       
+      console.log("Reset password email sent");
       toast.success("Password reset email sent. Please check your inbox.");
       
       return Promise.resolve();
     } catch (err) {
       const authError = err as AuthError;
+      console.error("Reset password exception:", authError);
       setError(authError.message);
+      toast.error(authError.message);
       return Promise.reject(authError);
     } finally {
       setLoading(false);
@@ -248,28 +295,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateProfile = async (profileData: Partial<Profile>) => {
-    if (!user) return Promise.reject(new Error("User not authenticated"));
+    if (!user) {
+      console.error("Cannot update profile: No authenticated user");
+      return Promise.reject(new Error("User not authenticated"));
+    }
     
     try {
       setLoading(true);
       setError(null);
       
+      console.log("Updating profile for user:", user.id, profileData);
       const { error } = await supabase
         .from('profiles')
         .update(profileData)
         .eq('id', user.id);
       
       if (error) {
+        console.error("Update profile error:", error);
         setError(error.message);
+        toast.error(error.message);
         return Promise.reject(error);
       }
       
+      console.log("Profile updated successfully");
       // Refresh profile data
       await getProfile(user.id);
       
       return Promise.resolve();
     } catch (err: any) {
+      console.error("Update profile exception:", err);
       setError(err.message);
+      toast.error(err.message);
       return Promise.reject(err);
     } finally {
       setLoading(false);
