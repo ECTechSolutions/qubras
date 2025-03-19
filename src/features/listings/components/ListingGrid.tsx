@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import ListingCard from "@/components/cards/ListingCard";
 import { Listing, ListingCardData } from "../types";
 
@@ -26,9 +27,12 @@ const ListingGrid = ({
 }: ListingGridProps) => {
   if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-qubras-600 mx-auto"></div>
-        <p className="mt-4 text-muted-foreground">Loading listings...</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="h-[400px]">
+            <Skeleton className="h-full w-full" />
+          </div>
+        ))}
       </div>
     );
   }

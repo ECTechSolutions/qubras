@@ -16,7 +16,10 @@ const Listings = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user } = useAuth();
   
+  // Enable the query regardless of user state to troubleshoot loading issue
   const { data: listings = [], isLoading } = useListingsQuery(user?.id);
+  
+  console.log("Listings page render:", { user, listings, isLoading });
   
   const { 
     createListingMutation, 
