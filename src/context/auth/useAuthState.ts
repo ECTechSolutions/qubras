@@ -10,13 +10,17 @@ export const useAuthState = (
   getProfile: (userId: string) => Promise<void>
 ) => {
   useEffect(() => {
-    // Initialize loading state
-    setLoading(true);
+    let isMounted = true;
+    
+    // Initialize loading state only if component is still mounted
+    if (isMounted) setLoading(true);
     
     // Set up supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession);
+        
+        if (!isMounted) return;
         
         // Update session and user state
         setSession(currentSession);
@@ -36,6 +40,8 @@ export const useAuthState = (
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
+        if (!isMounted) return;
+        
         if (error) {
           console.error("Error getting session:", error);
           setError(error.message);
@@ -49,17 +55,20 @@ export const useAuthState = (
           }
         }
       } catch (err) {
+        if (!isMounted) return;
         console.error("Error initializing auth:", err);
       } finally {
         // Ensure loading is always set to false when auth initialization completes
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     initializeAuth();
 
+    // Cleanup function
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [setLoading, setError, setSession, setUser, getProfile]);
+  }, []); // Empty dependency array to run only on mount
 };
