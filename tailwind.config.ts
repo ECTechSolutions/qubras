@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+        qubras: {
+          50: '#f5f7ff',
+          100: '#edf0ff',
+          200: '#dee3fe',
+          300: '#c6cffe',
+          400: '#a9affc',
+          500: '#8c8cf8',
+          600: '#7a6cf0',
+          700: '#6a5ad6',
+          800: '#5649ae',
+          900: '#46408a'
+        }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,12 +97,58 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' }
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8' }
+        },
+        'aurora': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        'fade-in-right': {
+          '0%': { opacity: '0', transform: 'translateX(20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' }
+        },
+        'fade-in-left': {
+          '0%': { opacity: '0', transform: 'translateX(-20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' }
+        },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' }
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
+        'aurora': 'aurora 20s linear infinite',
+        'fade-in': 'fade-in 0.5s ease-out',
+        'fade-in-right': 'fade-in-right 0.5s ease-out',
+        'fade-in-left': 'fade-in-left 0.5s ease-out',
+        'scale-in': 'scale-in 0.3s ease-out'
+			},
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Manrope', 'system-ui', 'sans-serif']
+      },
+      boxShadow: {
+        'glow': '0 0 30px -5px rgba(0, 0, 0, 0.1)',
+        'glass': '0 4px 30px rgba(0, 0, 0, 0.1)'
+      },
+      backdropBlur: {
+        'glass': '8px'
+      }
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
