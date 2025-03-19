@@ -2,7 +2,10 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AuroraBackground from "@/components/ui/aurora-background";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { Hero } from "@/components/ui/animated-hero";
+import { WorldMap } from "@/components/ui/world-map";
+import DisplayCards from "@/components/ui/display-cards";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -13,6 +16,36 @@ const Landing = () => {
     "Real-time messaging with potential partners",
     "Campaign management tools",
     "Performance analytics dashboard"
+  ];
+  
+  const defaultCards = [
+    {
+      icon: <Sparkles className="size-4 text-qubras-300" />,
+      title: "Smart Matchmaking",
+      description: "Find perfect co-marketing partners",
+      date: "Powered by AI",
+      iconClassName: "text-qubras-500",
+      titleClassName: "text-qubras-500",
+      className: "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration:700 hover:grayscale-0 before:left-0 before:top-0",
+    },
+    {
+      icon: <Sparkles className="size-4 text-qubras-300" />,
+      title: "Opportunity Board",
+      description: "Browse collaboration listings",
+      date: "Updated daily",
+      iconClassName: "text-qubras-500",
+      titleClassName: "text-qubras-500",
+      className: "[grid-area:stack] translate-x-12 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration:700 hover:grayscale-0 before:left-0 before:top-0",
+    },
+    {
+      icon: <Sparkles className="size-4 text-qubras-300" />,
+      title: "Campaign Tools",
+      description: "Track and manage your campaigns",
+      date: "Real-time analytics",
+      iconClassName: "text-qubras-500",
+      titleClassName: "text-qubras-500",
+      className: "[grid-area:stack] translate-x-24 translate-y-20 hover:translate-y-10",
+    },
   ];
   
   return (
@@ -50,37 +83,10 @@ const Landing = () => {
         </header>
         
         <main className="flex-1 py-8 md:py-12">
-          <section className="flex flex-col justify-center items-center text-center pt-8 md:pt-16 pb-12 md:pb-24 space-y-8">
-            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none bg-qubras-500/10 text-qubras-700 mb-4">
-              Introducing QUBRAS
-            </div>
-            
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tighter md:leading-tight max-w-3xl animate-fade-in">
-              Find Your Perfect <span className="text-qubras-600">Co-marketing</span> Partners
-            </h1>
-            
-            <p className="text-muted-foreground md:text-xl max-w-2xl mx-auto animate-fade-in">
-              QUBRAS connects companies for powerful co-marketing campaigns through smart matchmaking, clear communication, and effective collaboration tools.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
-              <Button 
-                size="lg" 
-                className="bg-qubras-600 hover:bg-qubras-700 hover-lift"
-                onClick={() => navigate("/auth")}
-              >
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => navigate("/auth")}
-              >
-                Take a Tour
-              </Button>
-            </div>
-            
+          {/* Hero Section with Animated Hero Component */}
+          <Hero />
+          
+          <section className="pt-8 md:pt-16 pb-12 md:pb-24 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-12 animate-fade-in">
               {features.map((feature, index) => (
                 <div 
@@ -91,6 +97,61 @@ const Landing = () => {
                   <p className="text-sm font-medium">{feature}</p>
                 </div>
               ))}
+            </div>
+          </section>
+          
+          {/* World Map Component */}
+          <section className="py-12 md:py-24 bg-white/30 dark:bg-black/20 rounded-xl backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto text-center mb-12">
+              <p className="font-bold text-xl md:text-4xl dark:text-white text-black mb-4">
+                Global <span className="text-qubras-600">Connectivity</span>
+              </p>
+              <p className="text-sm md:text-lg text-neutral-500 max-w-2xl mx-auto">
+                Connect with companies all around the world. QUBRAS makes it easy to find and collaborate with 
+                partners regardless of location.
+              </p>
+            </div>
+            <WorldMap
+              dots={[
+                {
+                  start: { lat: 40.7128, lng: -74.006 }, // New York
+                  end: { lat: 51.5074, lng: -0.1278 }, // London
+                },
+                {
+                  start: { lat: 40.7128, lng: -74.006 }, // New York
+                  end: { lat: 37.7749, lng: -122.4194 }, // San Francisco
+                },
+                {
+                  start: { lat: 51.5074, lng: -0.1278 }, // London
+                  end: { lat: 48.8566, lng: 2.3522 }, // Paris
+                },
+                {
+                  start: { lat: 51.5074, lng: -0.1278 }, // London
+                  end: { lat: 35.6762, lng: 139.6503 }, // Tokyo
+                },
+                {
+                  start: { lat: 37.7749, lng: -122.4194 }, // San Francisco
+                  end: { lat: -33.8688, lng: 151.2093 }, // Sydney
+                },
+              ]}
+              lineColor="#6366f1"
+            />
+          </section>
+          
+          {/* Display Cards Component */}
+          <section className="py-16 md:py-24">
+            <div className="max-w-7xl mx-auto text-center mb-12">
+              <p className="font-bold text-xl md:text-4xl dark:text-white text-black mb-4">
+                Platform <span className="text-qubras-600">Features</span>
+              </p>
+              <p className="text-sm md:text-lg text-neutral-500 max-w-2xl mx-auto">
+                Discover the powerful tools and features that make QUBRAS the ultimate co-marketing platform.
+              </p>
+            </div>
+            <div className="flex min-h-[400px] w-full items-center justify-center">
+              <div className="w-full max-w-3xl">
+                <DisplayCards cards={defaultCards} />
+              </div>
             </div>
           </section>
           
