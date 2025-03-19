@@ -23,14 +23,14 @@ const ListingModal = ({
   isEdit = false,
   initialData 
 }: ListingModalProps) => {
-  console.log("ListingModal render:", { open, isEdit });
+  console.log("ListingModal render:", { open, isEdit, initialData });
   
   const handleSubmit = (data: any) => {
     console.log("ListingModal form submitted:", data);
     if (onSubmit) {
       onSubmit(data);
+      onOpenChange(false);
     }
-    onOpenChange(false);
   };
   
   return (

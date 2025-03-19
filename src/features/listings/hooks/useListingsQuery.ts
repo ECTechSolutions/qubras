@@ -11,37 +11,61 @@ export const useListingsQuery = (userId: string | undefined) => {
       console.log("Fetching listings for userId:", userId);
       
       try {
-        // Explicitly fetch all listings without filtering by user_id
-        const { data, error } = await supabase
+        // First fetch all listings
+        const { data: listingsData, error: listingsError } = await supabase
           .from("listings")
-          .select("*, profiles(name, company, avatar_url)")
+          .select("*")
           .order("created_at", { ascending: false });
 
-        if (error) {
-          console.error("Error fetching listings:", error);
+        if (listingsError) {
+          console.error("Error fetching listings:", listingsError);
           toast.error("Failed to fetch listings");
-          throw error;
+          throw listingsError;
         }
 
-        console.log("Listings data fetched:", data);
-        
-        if (!data) {
+        if (!listingsData || listingsData.length === 0) {
           console.log("No listings data returned");
           return [];
         }
+
+        // Get unique user IDs from listings to fetch profiles in a separate query
+        const userIds = [...new Set(listingsData.map(listing => listing.user_id))];
         
-        const mappedListings = data.map((listing: any) => ({
-          id: listing.id,
-          title: listing.title,
-          description: listing.description,
-          budget_range: listing.budget_range,
-          duration: listing.duration,
-          goals: listing.goals || [],
-          company: listing.profiles?.company || "Unknown Company",
-          companyLogo: listing.profiles?.avatar_url || "",
-          user_id: listing.user_id,
-          postedAt: new Date(listing.created_at).toLocaleDateString(),
-        })) as Listing[];
+        // Fetch profiles for the user IDs
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, name, company, avatar_url")
+          .in("id", userIds);
+          
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+          // Continue with listings only
+        }
+        
+        // Create a map of profiles by user ID for easy lookup
+        const profilesMap = new Map();
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            profilesMap.set(profile.id, profile);
+          });
+        }
+        
+        // Map the listings with profile information
+        const mappedListings = listingsData.map((listing: any) => {
+          const profile = profilesMap.get(listing.user_id);
+          return {
+            id: listing.id,
+            title: listing.title,
+            description: listing.description,
+            budget_range: listing.budget_range,
+            duration: listing.duration,
+            goals: listing.goals || [],
+            company: profile?.company || "Unknown Company",
+            companyLogo: profile?.avatar_url || "",
+            user_id: listing.user_id,
+            postedAt: new Date(listing.created_at).toLocaleDateString(),
+          };
+        }) as Listing[];
 
         console.log("Mapped listings:", mappedListings.length, mappedListings);
         return mappedListings;
