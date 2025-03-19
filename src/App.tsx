@@ -84,15 +84,6 @@ const App = () => (
                 />
                 
                 <Route 
-                  path="/campaigns" 
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                <Route 
                   path="/profile" 
                   element={
                     <ProtectedRoute>

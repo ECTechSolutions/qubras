@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Calendar, 
   ChevronLeft, 
   Home, 
   LayoutDashboard, 
@@ -28,7 +27,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
     { name: "Matches", href: "/matches", icon: <Users className="h-5 w-5" /> },
     { name: "Listings", href: "/listings", icon: <Home className="h-5 w-5" /> },
     { name: "Messages", href: "/messages", icon: <MessageSquare className="h-5 w-5" /> },
-    { name: "Campaigns", href: "/campaigns", icon: <Calendar className="h-5 w-5" /> },
     { name: "Analytics", href: "/analytics", icon: <PieChart className="h-5 w-5" /> },
     { name: "Profile", href: "/profile", icon: <Settings className="h-5 w-5" /> },
   ];

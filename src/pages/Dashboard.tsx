@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-import { BarChart4, Calendar, MessageSquare, Plus, Sparkles, TrendingUp, Users } from "lucide-react";
+import { BarChart4, MessageSquare, Sparkles, TrendingUp, Users } from "lucide-react";
 import MatchCard from "@/components/cards/MatchCard";
-import CampaignCard from "@/components/cards/CampaignCard";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -31,34 +30,6 @@ const Dashboard = () => {
     }
   ];
   
-  const activeCampaigns = [
-    {
-      id: "campaign-1",
-      title: "Product Launch Webinar Series",
-      status: "active" as const,
-      partners: [
-        { name: "TechCorp", logo: "https://i.pravatar.cc/64?u=company1" },
-        { name: "MarketBoom", logo: "https://i.pravatar.cc/64?u=company2" }
-      ],
-      progress: 65,
-      startDate: "Jan 15, 2023",
-      endDate: "Mar 15, 2023",
-      daysLeft: 14
-    },
-    {
-      id: "campaign-2",
-      title: "Cross-Promotion Email Campaign",
-      status: "planned" as const,
-      partners: [
-        { name: "MarketBoom", logo: "https://i.pravatar.cc/64?u=company2" }
-      ],
-      progress: 0,
-      startDate: "Mar 1, 2023",
-      endDate: "Apr 1, 2023",
-      daysLeft: 30
-    }
-  ];
-  
   const stats = [
     {
       title: "Total Matches",
@@ -67,19 +38,13 @@ const Dashboard = () => {
       icon: <Users className="h-4 w-4 text-qubras-600" />
     },
     {
-      title: "Active Campaigns",
-      value: "3",
-      description: "2 ending this month",
-      icon: <Calendar className="h-4 w-4 text-qubras-600" />
-    },
-    {
       title: "Messages",
       value: "12",
       description: "5 unread messages",
       icon: <MessageSquare className="h-4 w-4 text-qubras-600" />
     },
     {
-      title: "Campaign ROI",
+      title: "ROI",
       value: "32%",
       description: "+8% from last month",
       icon: <TrendingUp className="h-4 w-4 text-qubras-600" />
@@ -95,7 +60,7 @@ const Dashboard = () => {
         </p>
       </header>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {stats.map((stat, index) => (
           <Card key={index} className="hover:shadow-md transition-all animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
             <CardContent className="p-6">
@@ -117,7 +82,6 @@ const Dashboard = () => {
       <Tabs defaultValue="overview" className="mb-8">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -156,7 +120,7 @@ const Dashboard = () => {
                     <div className="flex items-start gap-4 p-3 rounded-md bg-secondary/50">
                       <div className="h-2 w-2 mt-1.5 rounded-full bg-qubras-600" />
                       <div>
-                        <p className="text-sm font-medium">Review campaign proposal</p>
+                        <p className="text-sm font-medium">Review partnership proposal</p>
                         <p className="text-xs text-muted-foreground mt-1">Due in 2 days</p>
                       </div>
                     </div>
@@ -172,7 +136,7 @@ const Dashboard = () => {
                     <div className="flex items-start gap-4 p-3 rounded-md bg-secondary/50">
                       <div className="h-2 w-2 mt-1.5 rounded-full bg-qubras-600" />
                       <div>
-                        <p className="text-sm font-medium">Prepare webinar content</p>
+                        <p className="text-sm font-medium">Prepare content assets</p>
                         <p className="text-xs text-muted-foreground mt-1">Due in 5 days</p>
                       </div>
                     </div>
@@ -180,25 +144,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="campaigns" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {activeCampaigns.map((campaign) => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
-            ))}
-            
-            <Card className="border-dashed flex flex-col items-center justify-center p-6 h-full">
-              <div className="h-12 w-12 rounded-full bg-qubras-50 dark:bg-qubras-900/20 flex items-center justify-center mb-4">
-                <Plus className="h-6 w-6 text-qubras-600" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">Create New Campaign</h3>
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Start collaborating with your partners on a new campaign
-              </p>
-              <Button>Create Campaign</Button>
-            </Card>
           </div>
         </TabsContent>
         
@@ -224,7 +169,7 @@ const Dashboard = () => {
                       <span className="text-xs text-muted-foreground">2h ago</span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
-                      Hey, I've reviewed the campaign proposal and have a few suggestions...
+                      Hey, I've reviewed the partnership proposal and have a few suggestions...
                     </p>
                   </div>
                 </div>
@@ -243,10 +188,24 @@ const Dashboard = () => {
                       <span className="text-xs text-muted-foreground">1d ago</span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
-                      The webinar was a success! Let's schedule a call to discuss the next steps...
+                      The partnership was a success! Let's schedule a call to discuss the next steps...
                     </p>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>Performance metrics for your partnerships</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] flex items-center justify-center bg-muted/30 rounded-md">
+                <p className="text-muted-foreground text-sm">Analytics visualization</p>
               </div>
             </CardContent>
           </Card>
