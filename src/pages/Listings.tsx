@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import ListingCard from "@/components/cards/ListingCard";
 import ListingModal from "@/components/modals/ListingModal";
 
-// Define the listing type based on our database schema
 interface Listing {
   id: string;
   title: string;
@@ -33,7 +31,6 @@ const Listings = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all listings
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["listings"],
     queryFn: async () => {
@@ -47,14 +44,13 @@ const Listings = () => {
         throw error;
       }
 
-      // Transform data to match our component expectations
       return data.map((listing: any) => ({
         id: listing.id,
         title: listing.title,
         description: listing.description,
-        budget: listing.budget_range,
+        budget_range: listing.budget_range,
         duration: listing.duration,
-        categories: listing.goals || [],
+        goals: listing.goals || [],
         company: listing.profiles?.company || "Unknown Company",
         companyLogo: listing.profiles?.avatar_url || "",
         user_id: listing.user_id,
@@ -64,7 +60,6 @@ const Listings = () => {
     enabled: !!user,
   });
 
-  // Create a new listing
   const createListingMutation = useMutation({
     mutationFn: async (newListing: any) => {
       if (!user) throw new Error("You must be logged in to create a listing");
@@ -94,7 +89,6 @@ const Listings = () => {
     }
   });
 
-  // Update an existing listing
   const updateListingMutation = useMutation({
     mutationFn: async (updatedListing: any) => {
       if (!user) throw new Error("You must be logged in to update a listing");
@@ -129,7 +123,6 @@ const Listings = () => {
     }
   });
 
-  // Delete a listing
   const deleteListingMutation = useMutation({
     mutationFn: async (listingId: string) => {
       if (!user) throw new Error("You must be logged in to delete a listing");
@@ -171,22 +164,30 @@ const Listings = () => {
   };
 
   const handleEditListing = (listing: any) => {
-    setSelectedListing(listing);
+    setSelectedListing({
+      id: listing.id,
+      title: listing.title,
+      description: listing.description,
+      budget_range: listing.budget,
+      duration: listing.duration,
+      goals: listing.categories,
+      user_id: listing.user_id,
+      company: listing.company,
+      companyLogo: listing.companyLogo,
+      postedAt: listing.postedAt
+    });
     setIsEditModalOpen(true);
   };
 
   const handleViewListing = (id: string) => {
     const listing = listings.find((l: any) => l.id === id);
     setSelectedListing(listing || null);
-    // Here you could navigate to a detail page or open a modal with details
   };
 
   const handleContactListing = (id: string) => {
-    // Here you would typically open a messaging interface or contact form
     toast.info("Contact functionality coming soon!");
   };
 
-  // Filter listings by search query
   const filteredListings = listings.filter((listing: any) => {
     return (
       listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,7 +196,6 @@ const Listings = () => {
     );
   });
 
-  // Filter listings for "My Listings" tab
   const myListings = listings.filter((listing: any) => listing.user_id === user?.id);
 
   return (
@@ -253,7 +253,17 @@ const Listings = () => {
               {filteredListings.map((listing: any) => (
                 <ListingCard
                   key={listing.id}
-                  listing={listing}
+                  listing={{
+                    id: listing.id,
+                    title: listing.title,
+                    company: listing.company,
+                    companyLogo: listing.companyLogo,
+                    description: listing.description,
+                    budget: listing.budget_range,
+                    duration: listing.duration,
+                    categories: listing.goals,
+                    postedAt: listing.postedAt
+                  }}
                   onView={handleViewListing}
                   onContact={handleContactListing}
                 />
@@ -284,7 +294,17 @@ const Listings = () => {
               {myListings.map((listing: any) => (
                 <div key={listing.id} className="relative group">
                   <ListingCard
-                    listing={listing}
+                    listing={{
+                      id: listing.id,
+                      title: listing.title,
+                      company: listing.company,
+                      companyLogo: listing.companyLogo,
+                      description: listing.description,
+                      budget: listing.budget_range,
+                      duration: listing.duration,
+                      categories: listing.goals,
+                      postedAt: listing.postedAt
+                    }}
                     onView={handleViewListing}
                     onContact={handleContactListing}
                   />
@@ -293,7 +313,18 @@ const Listings = () => {
                       variant="outline" 
                       size="sm" 
                       className="mr-2"
-                      onClick={() => handleEditListing(listing)}
+                      onClick={() => handleEditListing({
+                        id: listing.id,
+                        title: listing.title,
+                        description: listing.description,
+                        budget: listing.budget_range,
+                        duration: listing.duration,
+                        categories: listing.goals,
+                        user_id: listing.user_id,
+                        company: listing.company,
+                        companyLogo: listing.companyLogo,
+                        postedAt: listing.postedAt
+                      })}
                     >
                       Edit
                     </Button>
@@ -312,14 +343,12 @@ const Listings = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Create Listing Modal */}
       <ListingModal 
         open={isCreateModalOpen} 
         onOpenChange={setIsCreateModalOpen}
         onSubmit={handleCreateListing}
       />
 
-      {/* Edit Listing Modal */}
       {selectedListing && (
         <ListingModal 
           open={isEditModalOpen} 
@@ -329,9 +358,9 @@ const Listings = () => {
           initialData={{
             title: selectedListing.title,
             description: selectedListing.description,
-            budget: selectedListing.budget,
+            budget: selectedListing.budget_range,
             duration: selectedListing.duration,
-            categories: selectedListing.categories,
+            categories: selectedListing.goals,
           }}
         />
       )}
