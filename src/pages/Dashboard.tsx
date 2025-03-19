@@ -8,7 +8,7 @@ import { BarChart4, MessageSquare, Sparkles, TrendingUp, Users } from "lucide-re
 import MatchCard from "@/components/cards/MatchCard";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   // Mock data for MVP
   const recentMatches = [
@@ -54,7 +54,7 @@ const Dashboard = () => {
   return (
     <div className="container py-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name || "User"}</h1>
+        <h1 className="text-3xl font-bold mb-2">Welcome, {profile?.name || "User"}</h1>
         <p className="text-muted-foreground">
           Here's an overview of your co-marketing activities
         </p>
