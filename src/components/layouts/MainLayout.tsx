@@ -17,16 +17,16 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     setSidebarOpen(false);
   }, [location.pathname]);
   
-  // Don't show sidebar on landing page
-  const isLandingPage = location.pathname === "/";
+  // Don't show sidebar and navbar on landing page or auth page
+  const isPublicPage = location.pathname === "/" || location.pathname === "/auth";
   
   return (
     <div className="flex min-h-screen">
-      {!isLandingPage && (
+      {!isPublicPage && (
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       )}
       <div className="flex flex-col flex-1 w-full">
-        {!isLandingPage && (
+        {!isPublicPage && (
           <Navbar onOpenSidebar={() => setSidebarOpen(true)} />
         )}
         <main className="flex-1 transition-all duration-300 ease-in-out">

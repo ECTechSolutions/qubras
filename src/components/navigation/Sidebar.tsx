@@ -13,6 +13,7 @@ import {
   X 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface SidebarProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface SidebarProps {
 
 const Sidebar = ({ open, onClose }: SidebarProps) => {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
   
   const links = [
     { name: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
@@ -30,6 +32,10 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
     { name: "Analytics", href: "/analytics", icon: <PieChart className="h-5 w-5" /> },
     { name: "Profile", href: "/profile", icon: <Settings className="h-5 w-5" /> },
   ];
+  
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
   
   return (
     <>
@@ -44,16 +50,17 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
       {/* Sidebar */}
       <div 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:z-0",
-          open ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:z-0",
+          open ? "translate-x-0" : "-translate-x-full",
+          collapsed ? "w-20" : "w-64"
         )}
       >
         <div className="flex h-16 items-center justify-between px-4 border-b">
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center gap-2", collapsed && "justify-center w-full")}>
             <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-qubras-500 to-qubras-700 flex items-center justify-center text-white font-semibold text-sm">
               Q
             </div>
-            <span className="text-lg font-semibold">QUBRAS</span>
+            {!collapsed && <span className="text-lg font-semibold">QUBRAS</span>}
           </div>
           <div className="md:hidden">
             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -71,25 +78,30 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 to={link.href}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  collapsed && "justify-center px-0",
                   location.pathname === link.href
                     ? "bg-qubras-50 text-qubras-700 dark:bg-qubras-900/20 dark:text-qubras-500"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 {link.icon}
-                {link.name}
+                {!collapsed && link.name}
               </Link>
             ))}
           </div>
           
-          <div className="px-3 py-4 mt-8">
+          <div className={cn("px-3 py-4 mt-8", collapsed && "flex justify-center")}>
             <Button 
               variant="outline" 
-              className="w-full justify-start gap-2" 
+              className={cn(
+                "justify-start gap-2", 
+                collapsed && "w-10 h-10 p-0 justify-center"
+              )} 
               size="sm"
+              onClick={toggleCollapse}
             >
-              <ChevronLeft className="h-4 w-4" />
-              <span>Collapse</span>
+              <ChevronLeft className={cn("h-4 w-4", collapsed && "rotate-180")} />
+              {!collapsed && <span>Collapse</span>}
             </Button>
           </div>
         </ScrollArea>
