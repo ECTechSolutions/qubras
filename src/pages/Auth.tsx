@@ -1,12 +1,13 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { Github, Loader2, Mail } from "lucide-react";
 
@@ -16,54 +17,114 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
+  const [resetPasswordMode, setResetPasswordMode] = useState(false);
   
-  const { signIn, signUp, socialSignIn, loading, error } = useAuth();
-  const { toast } = useToast();
+  const { signIn, signUp, socialSignIn, resetPassword, loading, error } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Check if we're in password reset mode from URL parameters
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('reset') === 'true') {
+      setResetPasswordMode(true);
+    }
+  }, [location]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      if (isSignIn) {
+      if (resetPasswordMode) {
+        await resetPassword(email);
+        toast.success("Password reset email sent. Please check your inbox.");
+        setResetPasswordMode(false);
+      } else if (isSignIn) {
         await signIn(email, password);
+        toast.success("Welcome back!");
+        navigate("/dashboard");
       } else {
         await signUp(email, password, name, company);
+        toast.success("Account created! Please check your email to confirm your account.");
+        // Don't navigate yet as the user needs to confirm their email
       }
-      
-      toast({
-        title: isSignIn ? "Welcome back!" : "Account created!",
-        description: isSignIn ? "You've successfully signed in." : "Your account has been created successfully.",
-      });
-      
-      navigate("/dashboard");
     } catch (err) {
-      toast({
-        title: "Authentication failed",
-        description: error || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error || "Authentication failed. Please try again.");
     }
   };
   
-  const handleSocialSignIn = async (provider: string) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    
     try {
-      await socialSignIn(provider);
-      
-      toast({
-        title: "Welcome!",
-        description: `You've successfully signed in with ${provider}.`,
-      });
-      
-      navigate("/dashboard");
+      await resetPassword(email);
     } catch (err) {
-      toast({
-        title: "Authentication failed",
-        description: error || `Failed to sign in with ${provider}. Please try again.`,
-        variant: "destructive",
-      });
+      toast.error(error || "Failed to send reset email. Please try again.");
     }
   };
+  
+  const handleSocialSignIn = async (provider: "google" | "github") => {
+    try {
+      await socialSignIn(provider);
+      // No navigation needed as we'll be redirected
+    } catch (err) {
+      toast.error(error || `Failed to sign in with ${provider}. Please try again.`);
+    }
+  };
+  
+  if (resetPasswordMode) {
+    return (
+      <div className="container flex items-center justify-center min-h-screen py-10">
+        <Card className="w-full max-w-md shadow-lg animate-scale-in">
+          <form onSubmit={handleResetPassword}>
+            <CardHeader>
+              <CardTitle>Reset Password</CardTitle>
+              <CardDescription>
+                Enter your email address to receive a password reset link.
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="Email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </CardContent>
+            
+            <CardFooter className="flex flex-col space-y-4">
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={loading}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send Reset Link
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => setResetPasswordMode(false)}
+              >
+                Back to Sign In
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    );
+  }
   
   return (
     <div className="container flex items-center justify-center min-h-screen py-10">
@@ -73,6 +134,12 @@ const Auth = () => {
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
+          
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           
           <TabsContent value="signin">
             <form onSubmit={handleSubmit}>
@@ -99,7 +166,13 @@ const Auth = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Button variant="link" className="px-0" size="sm">
+                    <Button 
+                      variant="link" 
+                      className="px-0" 
+                      size="sm"
+                      type="button"
+                      onClick={() => setResetPasswordMode(true)}
+                    >
                       Forgot password?
                     </Button>
                   </div>
@@ -117,7 +190,7 @@ const Auth = () => {
               <CardFooter className="flex flex-col space-y-4">
                 <Button 
                   type="submit" 
-                  className="w-full bg-qubras-600 hover:bg-qubras-700"
+                  className="w-full"
                   disabled={loading}
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -136,7 +209,7 @@ const Auth = () => {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={() => handleSocialSignIn("Google")}
+                    onClick={() => handleSocialSignIn("google")}
                     disabled={loading}
                   >
                     <Mail className="mr-2 h-4 w-4" />
@@ -146,7 +219,7 @@ const Auth = () => {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={() => handleSocialSignIn("GitHub")}
+                    onClick={() => handleSocialSignIn("github")}
                     disabled={loading}
                   >
                     <Github className="mr-2 h-4 w-4" />
@@ -217,7 +290,7 @@ const Auth = () => {
               <CardFooter className="flex flex-col space-y-4">
                 <Button 
                   type="submit" 
-                  className="w-full bg-qubras-600 hover:bg-qubras-700"
+                  className="w-full"
                   disabled={loading}
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -236,7 +309,7 @@ const Auth = () => {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={() => handleSocialSignIn("Google")}
+                    onClick={() => handleSocialSignIn("google")}
                     disabled={loading}
                   >
                     <Mail className="mr-2 h-4 w-4" />
@@ -246,7 +319,7 @@ const Auth = () => {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={() => handleSocialSignIn("GitHub")}
+                    onClick={() => handleSocialSignIn("github")}
                     disabled={loading}
                   >
                     <Github className="mr-2 h-4 w-4" />
