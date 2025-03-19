@@ -68,8 +68,8 @@ const ListingGrid = ({
         <div key={listing.id} className={`relative ${showEditControls ? 'group' : ''}`}>
           <ListingCard
             listing={mapToCardData(listing)}
-            onView={onView}
-            onContact={onContact}
+            onView={() => onView(listing.id)}
+            onContact={() => onContact(listing.id)}
           />
           
           {showEditControls && onEdit && onDelete && (
