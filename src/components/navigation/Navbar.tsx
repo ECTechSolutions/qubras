@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell, LogOut, Menu, Search, User } from "lucide-react";
@@ -24,14 +25,12 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
       await signOut();
       console.log("Logout successful, redirecting to landing page");
       
-      // Ensure we navigate to the landing page
-      navigate("/", { replace: true });
+      // Force navigate to landing page with replace to clear history
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to log out. Please try again.");
-    } finally {
-      // Reset the loading state
-      setIsLoggingOut(false);
+      setIsLoggingOut(false); // Reset the loading state on error
     }
   };
 

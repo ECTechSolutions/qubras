@@ -59,7 +59,11 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
       setUser(null);
       setSession(null);
       
+      // Perform the signOut operation after clearing React state
       await signOutOperation();
+      
+      // Return explicitly to ensure Promise chain completes
+      return Promise.resolve();
     } finally {
       setLoading(false);
     }
