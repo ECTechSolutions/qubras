@@ -15,6 +15,10 @@ export const useSignOut = () => {
     try {
       setIsLoading(true);
       
+      // Clear auth state in memory first - important to prevent state inconsistencies
+      setUser(null);
+      setSession(null);
+      
       console.log("Signing out from supabase");
       const { error } = await supabase.auth.signOut();
       
@@ -26,10 +30,6 @@ export const useSignOut = () => {
       }
       
       console.log("Sign out from supabase successful");
-      // Clear auth state
-      setUser(null);
-      setSession(null);
-      
       toast.success("Signed out successfully");
       
       return Promise.resolve();

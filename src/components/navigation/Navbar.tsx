@@ -23,11 +23,12 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
       await signOut();
       console.log("Logout successful, redirecting to landing page");
       
-      // After successful signOut, redirect to the landing page
-      window.location.href = "/";
+      // Use navigate instead of window.location for smoother transitions
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to log out. Please try again.");
+    } finally {
       setIsLoggingOut(false);
     }
   };
@@ -74,7 +75,11 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
             title="Logout"
             disabled={isLoggingOut}
           >
-            <LogOut className={`h-5 w-5 ${isLoggingOut ? 'opacity-50' : ''}`} />
+            {isLoggingOut ? (
+              <div className="h-5 w-5 border-t-2 border-b-2 border-primary rounded-full animate-spin"></div>
+            ) : (
+              <LogOut className="h-5 w-5" />
+            )}
             <span className="sr-only">Logout</span>
           </Button>
         </div>
