@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { useSignIn } from "./operations/useSignIn";
 import { useSignUp } from "./operations/useSignUp";
@@ -29,9 +29,9 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
   };
 
   // Watch for errors from individual operations
-  useState(() => {
+  useEffect(() => {
     updateError(signInError || signUpError || signOutError || socialSignInError || resetPasswordError);
-  });
+  }, [signInError, signUpError, signOutError, socialSignInError, resetPasswordError]);
 
   // Wrapped operations
   const signIn = async (email: string, password: string) => {
