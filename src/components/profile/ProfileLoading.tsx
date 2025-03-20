@@ -7,6 +7,7 @@ import { RefreshCw } from "lucide-react";
 
 const ProfileLoading = () => {
   const [loadingTooLong, setLoadingTooLong] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   
   useEffect(() => {
     // Set a timeout to detect if loading takes too long
@@ -18,7 +19,12 @@ const ProfileLoading = () => {
   }, []);
 
   const handleRetry = () => {
-    window.location.reload();
+    setIsRetrying(true);
+    
+    // Set a short timeout to allow UI to update before reload
+    setTimeout(() => {
+      window.location.reload();
+    }, 300); // Short delay to show loading indicator
   };
 
   return (
@@ -52,9 +58,24 @@ const ProfileLoading = () => {
         </CardContent>
         {loadingTooLong && (
           <CardFooter className="flex justify-center">
-            <Button onClick={handleRetry} variant="outline" size="sm" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Retry
+            <Button 
+              onClick={handleRetry} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              disabled={isRetrying}
+            >
+              {isRetrying ? (
+                <>
+                  <div className="h-4 w-4 border-t-2 border-b-2 border-primary rounded-full animate-spin"></div>
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Retry
+                </>
+              )}
             </Button>
           </CardFooter>
         )}
