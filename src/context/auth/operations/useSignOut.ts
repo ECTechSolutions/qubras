@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthError } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 export const useSignOut = () => {
@@ -11,7 +10,6 @@ export const useSignOut = () => {
   const signOut = async () => {
     try {
       setIsLoading(true);
-      
       console.log("Signing out from supabase");
       const { error } = await supabase.auth.signOut();
       
@@ -19,19 +17,16 @@ export const useSignOut = () => {
         console.error("Sign out error:", error);
         setError(error.message);
         toast.error(error.message);
-        return Promise.reject(error);
+        throw error;
       }
       
       console.log("Sign out from supabase successful");
-      toast.success("Signed out successfully");
-      
-      return Promise.resolve();
+      return true;
     } catch (err) {
-      const authError = err as AuthError;
-      console.error("Sign out exception:", authError);
-      setError(authError.message);
-      toast.error(authError.message);
-      return Promise.reject(authError);
+      console.error("Sign out exception:", err);
+      const message = err instanceof Error ? err.message : "Unknown error during sign out";
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }

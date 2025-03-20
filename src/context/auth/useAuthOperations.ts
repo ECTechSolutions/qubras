@@ -55,15 +55,18 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
   const signOut = async () => {
     setLoading(true);
     try {
-      // Clear React state before Supabase signOut
+      // First clear React state
       setUser(null);
       setSession(null);
       
-      // Perform the signOut operation after clearing React state
+      // Then perform Supabase signOut
       await signOutOperation();
       
-      // Return explicitly to ensure Promise chain completes
-      return Promise.resolve();
+      // Return success to continue the chain
+      return true;
+    } catch (error) {
+      console.error("Error in signOut operation:", error);
+      throw error;
     } finally {
       setLoading(false);
     }

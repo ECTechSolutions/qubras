@@ -25,7 +25,7 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
       await signOut();
       console.log("Logout successful, redirecting to landing page");
       
-      // Force navigate to landing page with replace to clear history
+      // Force a full browser navigation to completely reset application state
       window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
