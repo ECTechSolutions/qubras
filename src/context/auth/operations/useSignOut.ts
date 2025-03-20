@@ -8,16 +8,9 @@ export const useSignOut = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const signOut = async (
-    setUser: (user: null) => void,
-    setSession: (session: null) => void
-  ) => {
+  const signOut = async () => {
     try {
       setIsLoading(true);
-      
-      // Clear auth state in memory first - important to prevent state inconsistencies
-      setUser(null);
-      setSession(null);
       
       console.log("Signing out from supabase");
       const { error } = await supabase.auth.signOut();
