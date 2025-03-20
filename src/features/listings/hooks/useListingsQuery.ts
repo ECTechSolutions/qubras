@@ -16,11 +16,19 @@ export const useListingsQuery = (userId: string | undefined) => {
       }
       
       try {
-        // First fetch all listings
-        const { data: listingsData, error: listingsError } = await supabase
-          .from("listings")
-          .select("*")
-          .order("created_at", { ascending: false });
+        // Fetch listings and profiles in parallel for better performance
+        const [listingsResponse, profilesResponse] = await Promise.all([
+          supabase
+            .from("listings")
+            .select("*")
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("profiles")
+            .select("id, name, company, avatar_url")
+        ]);
+
+        const { data: listingsData, error: listingsError } = listingsResponse;
+        const { data: profilesData, error: profilesError } = profilesResponse;
 
         if (listingsError) {
           console.error("Error fetching listings:", listingsError);
@@ -28,25 +36,16 @@ export const useListingsQuery = (userId: string | undefined) => {
           throw listingsError;
         }
 
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+          // Continue with listings only, don't throw error
+        }
+
         if (!listingsData || listingsData.length === 0) {
           console.log("No listings data returned");
           return [];
         }
 
-        // Get unique user IDs from listings to fetch profiles in a separate query
-        const userIds = [...new Set(listingsData.map(listing => listing.user_id))];
-        
-        // Fetch profiles for the user IDs
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, name, company, avatar_url")
-          .in("id", userIds);
-          
-        if (profilesError) {
-          console.error("Error fetching profiles:", profilesError);
-          // Continue with listings only
-        }
-        
         // Create a map of profiles by user ID for easy lookup
         const profilesMap = new Map();
         if (profilesData) {
@@ -90,5 +89,6 @@ export const useListingsQuery = (userId: string | undefined) => {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
+    refetchInterval: false, // Disable auto-refetching to reduce load
   });
 };

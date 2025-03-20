@@ -14,11 +14,25 @@ export const useProfileOperations = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to prevent errors when no profile is found
       
       if (error) {
         console.error('Error fetching profile:', error);
         setProfile(null);
+        toast.error("Error loading profile");
+        return;
+      }
+      
+      if (!data) {
+        console.warn("No profile found for user:", userId);
+        // Create a minimal profile so the UI doesn't break
+        setProfile({
+          id: userId,
+          name: "User",
+          company: "Company",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        } as Profile);
         return;
       }
       
@@ -27,6 +41,7 @@ export const useProfileOperations = () => {
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+      toast.error("Failed to load profile");
     }
   };
 

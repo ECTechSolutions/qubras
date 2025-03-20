@@ -35,15 +35,22 @@ export const useAuthState = (
           } catch (err) {
             console.error("Error getting profile after auth change:", err);
             if (isMounted) {
+              setError("Failed to load profile data");
               toast.error("Failed to load profile data");
             }
+          } finally {
+            // Set loading to false even if profile fetch fails
+            if (isMounted) {
+              setLoading(false);
+              authStateInitialized = true;
+            }
           }
-        }
-        
-        // Set loading to false after auth state change is processed
-        if (isMounted) {
-          setLoading(false);
-          authStateInitialized = true;
+        } else {
+          // No user in session, set loading to false
+          if (isMounted) {
+            setLoading(false);
+            authStateInitialized = true;
+          }
         }
       }
     );
@@ -72,20 +79,28 @@ export const useAuthState = (
             } catch (err) {
               console.error("Error getting profile on init:", err);
               if (isMounted) {
+                setError("Failed to load profile data");
                 toast.error("Failed to load profile data");
               }
+            } finally {
+              // Set loading to false even if profile fetch fails
+              if (isMounted) {
+                setLoading(false);
+                authStateInitialized = true;
+              }
             }
-          }
-          
-          // Only set loading to false after everything is done
-          if (isMounted) {
-            setLoading(false);
-            authStateInitialized = true;
+          } else {
+            // No user in session, set loading to false
+            if (isMounted) {
+              setLoading(false);
+              authStateInitialized = true;
+            }
           }
         }
       } catch (err) {
         if (!isMounted) return;
         console.error("Error initializing auth:", err);
+        setError("Authentication initialization error");
         toast.error("Authentication initialization error");
         setLoading(false);
       }
@@ -99,8 +114,10 @@ export const useAuthState = (
       if (isMounted && !authStateInitialized) {
         console.warn("Auth initialization timed out");
         setLoading(false);
+        setError("Authentication initialization timed out");
+        toast.error("Authentication took too long. Please refresh the page.");
       }
-    }, 5000); // 5 seconds safety timeout
+    }, 3000); // Reduced from 5 seconds to 3 seconds
 
     // Cleanup function
     return () => {

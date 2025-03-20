@@ -26,11 +26,16 @@ export const useSignOut = () => {
       }
       
       console.log("Sign out successful");
+      // Clear auth state
       setUser(null);
       setSession(null);
       
+      toast.success("Signed out successfully");
+      
       // Force a reload of the application to clear any cached state
-      window.location.href = "/";
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
       
       return Promise.resolve();
     } catch (err) {
