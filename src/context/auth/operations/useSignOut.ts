@@ -15,7 +15,7 @@ export const useSignOut = () => {
     try {
       setIsLoading(true);
       
-      console.log("Signing out");
+      console.log("Signing out from supabase");
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -25,17 +25,12 @@ export const useSignOut = () => {
         return Promise.reject(error);
       }
       
-      console.log("Sign out successful");
+      console.log("Sign out from supabase successful");
       // Clear auth state
       setUser(null);
       setSession(null);
       
       toast.success("Signed out successfully");
-      
-      // Force a reload of the application to clear any cached state
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
       
       return Promise.resolve();
     } catch (err) {

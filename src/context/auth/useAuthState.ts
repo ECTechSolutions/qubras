@@ -12,13 +12,12 @@ export const useAuthState = (
 ) => {
   useEffect(() => {
     let isMounted = true;
-    let authStateInitialized = false;
     console.log("Auth state hook initialized");
     
-    // Initialize loading state only if component is still mounted
+    // Initialize loading state
     if (isMounted) setLoading(true);
     
-    // Set up supabase auth state listener
+    // Set up supabase auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession);
@@ -29,33 +28,28 @@ export const useAuthState = (
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
-        if (currentSession?.user) {
+        // Set loading to false after updating auth state
+        // Profile fetching can happen in the background
+        if (isMounted) {
+          setLoading(false);
+        }
+        
+        // Fetch profile in the background if user exists
+        if (currentSession?.user && isMounted) {
           try {
             await getProfile(currentSession.user.id);
           } catch (err) {
             console.error("Error getting profile after auth change:", err);
             if (isMounted) {
-              setError("Failed to load profile data");
-              toast.error("Failed to load profile data");
+              setError("Profile data could not be loaded");
+              toast.error("Profile data could not be loaded");
             }
-          } finally {
-            // Set loading to false even if profile fetch fails
-            if (isMounted) {
-              setLoading(false);
-              authStateInitialized = true;
-            }
-          }
-        } else {
-          // No user in session, set loading to false
-          if (isMounted) {
-            setLoading(false);
-            authStateInitialized = true;
           }
         }
       }
     );
 
-    // Get initial session
+    // Get initial session after setting up the listener
     const initializeAuth = async () => {
       try {
         console.log("Getting initial session");
@@ -73,28 +67,20 @@ export const useAuthState = (
           setSession(initialSession);
           setUser(initialSession?.user || null);
           
-          if (initialSession?.user) {
-            try {
-              await getProfile(initialSession.user.id);
-            } catch (err) {
+          // Set loading to false after setting the session
+          // regardless of whether we have a user or not
+          if (isMounted) {
+            setLoading(false);
+          }
+          
+          // Fetch profile in the background if user exists
+          if (initialSession?.user && isMounted) {
+            getProfile(initialSession.user.id).catch(err => {
               console.error("Error getting profile on init:", err);
               if (isMounted) {
-                setError("Failed to load profile data");
                 toast.error("Failed to load profile data");
               }
-            } finally {
-              // Set loading to false even if profile fetch fails
-              if (isMounted) {
-                setLoading(false);
-                authStateInitialized = true;
-              }
-            }
-          } else {
-            // No user in session, set loading to false
-            if (isMounted) {
-              setLoading(false);
-              authStateInitialized = true;
-            }
+            });
           }
         }
       } catch (err) {
@@ -109,15 +95,13 @@ export const useAuthState = (
     // Run initialization
     initializeAuth();
 
-    // Add a safety timeout to prevent infinite loading
+    // Add a safety timeout to prevent infinite loading - shorter timeout
     const safetyTimeout = setTimeout(() => {
-      if (isMounted && !authStateInitialized) {
-        console.warn("Auth initialization timed out");
+      if (isMounted) {
+        console.warn("Auth initialization safety timeout triggered");
         setLoading(false);
-        setError("Authentication initialization timed out");
-        toast.error("Authentication took too long. Please refresh the page.");
       }
-    }, 3000); // Reduced from 5 seconds to 3 seconds
+    }, 2000); // Reduced from 3 seconds to 2 seconds
 
     // Cleanup function
     return () => {

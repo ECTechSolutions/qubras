@@ -1,8 +1,26 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 const ProfileLoading = () => {
+  const [loadingTooLong, setLoadingTooLong] = useState(false);
+  
+  useEffect(() => {
+    // Set a timeout to detect if loading takes too long
+    const timeoutId = setTimeout(() => {
+      setLoadingTooLong(true);
+    }, 5000); // 5 seconds
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="container py-8">
       <Card>
@@ -25,11 +43,21 @@ const ProfileLoading = () => {
                 Please wait while we load your profile...
               </p>
               <p className="text-center text-xs text-muted-foreground mt-2">
-                If this takes longer than expected, try refreshing the page.
+                {loadingTooLong 
+                  ? "Loading is taking longer than expected." 
+                  : "If this takes longer than expected, try refreshing the page."}
               </p>
             </div>
           </div>
         </CardContent>
+        {loadingTooLong && (
+          <CardFooter className="flex justify-center">
+            <Button onClick={handleRetry} variant="outline" size="sm" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

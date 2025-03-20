@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell, LogOut, Menu, Search, User } from "lucide-react";
 import { useAuth } from "@/context/auth";
@@ -12,19 +13,22 @@ interface NavbarProps {
 const Navbar = ({ onOpenSidebar }: NavbarProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     try {
-      console.log("Signing out");
-      await signOut();
-      toast.success("Logged out successfully");
+      setIsLoggingOut(true);
+      console.log("Starting logout process");
       
-      // Force a hard redirect and reload to completely reset the app state
-      console.log("Redirecting to landing page");
+      await signOut();
+      console.log("Logout successful, redirecting to landing page");
+      
+      // After successful signOut, redirect to the landing page
       window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Failed to log out");
+      toast.error("Failed to log out. Please try again.");
+      setIsLoggingOut(false);
     }
   };
 
@@ -63,8 +67,14 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
             <span className="sr-only">Profile</span>
           </Button>
           
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-            <LogOut className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleLogout} 
+            title="Logout"
+            disabled={isLoggingOut}
+          >
+            <LogOut className={`h-5 w-5 ${isLoggingOut ? 'opacity-50' : ''}`} />
             <span className="sr-only">Logout</span>
           </Button>
         </div>
