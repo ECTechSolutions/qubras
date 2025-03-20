@@ -17,18 +17,26 @@ import Listings from "@/pages/Listings";
 import Profile from "@/pages/Profile";
 // We'll add more pages as needed in future updates
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30000,
+    },
+  },
+});
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
-    // Simple loading indicator instead of skeleton
-    return <div className="p-8 flex justify-center items-center">Loading...</div>;
+    // Very simple loading indicator to avoid infinite loading issues
+    return <div className="p-8 text-center">Loading application...</div>;
   }
   
   if (!user) {
+    console.log("No user found, redirecting to auth");
     return <Navigate to="/auth" replace />;
   }
   

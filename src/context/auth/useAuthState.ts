@@ -11,6 +11,7 @@ export const useAuthState = (
 ) => {
   useEffect(() => {
     let isMounted = true;
+    console.log("Auth state hook initialized");
     
     // Initialize loading state only if component is still mounted
     if (isMounted) setLoading(true);
@@ -27,7 +28,11 @@ export const useAuthState = (
         setUser(currentSession?.user || null);
         
         if (currentSession?.user) {
-          await getProfile(currentSession.user.id);
+          try {
+            await getProfile(currentSession.user.id);
+          } catch (err) {
+            console.error("Error getting profile after auth change:", err);
+          }
         }
         
         // Set loading to false after auth state change is processed
@@ -38,6 +43,7 @@ export const useAuthState = (
     // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log("Getting initial session");
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (!isMounted) return;
@@ -45,28 +51,36 @@ export const useAuthState = (
         if (error) {
           console.error("Error getting session:", error);
           setError(error.message);
+          setLoading(false);
         } else {
           console.log("Initial session:", initialSession);
           setSession(initialSession);
           setUser(initialSession?.user || null);
           
           if (initialSession?.user) {
-            await getProfile(initialSession.user.id);
+            try {
+              await getProfile(initialSession.user.id);
+            } catch (err) {
+              console.error("Error getting profile on init:", err);
+            }
           }
+          
+          // Only set loading to false after everything is done
+          setLoading(false);
         }
       } catch (err) {
         if (!isMounted) return;
         console.error("Error initializing auth:", err);
-      } finally {
-        // Ensure loading is always set to false when auth initialization completes
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     };
 
+    // Run initialization
     initializeAuth();
 
     // Cleanup function
     return () => {
+      console.log("Auth state hook cleaning up");
       isMounted = false;
       subscription.unsubscribe();
     };

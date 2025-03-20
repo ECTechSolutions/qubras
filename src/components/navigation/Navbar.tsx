@@ -18,8 +18,10 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
       console.log("Signing out");
       await signOut();
       toast.success("Logged out successfully");
-      // Force the navigation to auth and refresh the page to ensure clean state
-      window.location.href = "/auth";
+      
+      // Force a hard redirect and reload to completely reset the app state
+      console.log("Redirecting to landing page");
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to log out");

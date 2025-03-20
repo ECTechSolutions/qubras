@@ -11,10 +11,9 @@ const ProfileLoading = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-center py-8">
-            <div className="text-center">
-              <div className="animate-pulse text-blue-500 mb-2">⭘</div>
-              <p>Loading profile data...</p>
-            </div>
+            <p className="text-center">
+              Loading profile data...
+            </p>
           </div>
         </CardContent>
       </Card>
