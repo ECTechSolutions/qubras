@@ -1,5 +1,5 @@
 
-import { Session, User, AuthError } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 
 export interface Profile {
   id: string;
@@ -19,7 +19,7 @@ export interface AuthContextType {
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string, company: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<boolean>; // Updated return type from void to boolean
   socialSignIn: (provider: "google" | "github") => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
