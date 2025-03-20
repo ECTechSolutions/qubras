@@ -29,6 +29,9 @@ export const useSignOut = () => {
       setUser(null);
       setSession(null);
       
+      // Force a reload of the application to clear any cached state
+      window.location.href = "/";
+      
       return Promise.resolve();
     } catch (err) {
       const authError = err as AuthError;

@@ -6,9 +6,14 @@ import { Listing } from "../types";
 
 export const useListingsQuery = (userId: string | undefined) => {
   return useQuery({
-    queryKey: ["listings"],
+    queryKey: ["listings", userId],
     queryFn: async () => {
       console.log("Fetching listings for userId:", userId);
+      
+      if (!userId) {
+        console.log("No userId provided, waiting for authentication");
+        return [];
+      }
       
       try {
         // First fetch all listings
@@ -80,9 +85,10 @@ export const useListingsQuery = (userId: string | undefined) => {
         return [];
       }
     },
-    // Ensure the query runs immediately
-    enabled: true,
+    // Only run the query when userId is available
+    enabled: !!userId,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2,
   });
 };

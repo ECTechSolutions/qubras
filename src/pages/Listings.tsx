@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth";
@@ -8,33 +7,39 @@ import { useListingsQuery } from "@/features/listings/hooks/useListingsQuery";
 import { useListingMutations } from "@/features/listings/hooks/useListingMutations";
 import ListingsHeader from "@/features/listings/components/ListingsHeader";
 import ListingsTabs from "@/features/listings/components/ListingsTabs";
+import ProfileLoading from "@/components/profile/ProfileLoading";
 
 const Listings = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   const { 
     data: listings = [], 
-    isLoading, 
+    isLoading: listingsLoading, 
     isError, 
     refetch 
   } = useListingsQuery(user?.id);
   
+  const isLoading = authLoading || listingsLoading;
+  
   console.log("Listings page render:", { 
     user, 
+    authLoading,
+    listingsLoading, 
     listings: listings?.length || 0, 
-    isLoading, 
     isError,
     createModalOpen: isCreateModalOpen
   });
   
   // Refetch when component mounts or user changes
   useEffect(() => {
-    console.log("Listings page mounted or user changed, refetching...");
-    refetch();
+    if (user) {
+      console.log("Listings page mounted or user changed, refetching...");
+      refetch();
+    }
   }, [user, refetch]);
   
   const { 
@@ -101,10 +106,18 @@ const Listings = () => {
   });
 
   // Get only the current user's listings
-  const myListings = listings.filter((listing) => listing.user_id === user?.id);
-  
-  console.log("Filtered listings:", filteredListings.length);
-  console.log("My listings:", myListings.length);
+  const myListings = user ? listings.filter((listing) => listing.user_id === user.id) : [];
+
+  if (authLoading) {
+    return (
+      <div className="container py-8">
+        <div className="text-center py-12">
+          <h2 className="text-lg font-semibold mb-2">Authenticating...</h2>
+          <p className="text-muted-foreground">Please wait while we validate your session.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isError) {
     return (
@@ -139,7 +152,7 @@ const Listings = () => {
       <ListingsTabs 
         allListings={filteredListings}
         myListings={myListings}
-        isLoading={isLoading}
+        isLoading={listingsLoading}
         onView={handleViewListing}
         onContact={handleContactListing}
         onCreateClick={() => {

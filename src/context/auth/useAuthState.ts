@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const useAuthState = (
   setLoading: (loading: boolean) => void,
@@ -11,6 +12,7 @@ export const useAuthState = (
 ) => {
   useEffect(() => {
     let isMounted = true;
+    let authStateInitialized = false;
     console.log("Auth state hook initialized");
     
     // Initialize loading state only if component is still mounted
@@ -32,11 +34,17 @@ export const useAuthState = (
             await getProfile(currentSession.user.id);
           } catch (err) {
             console.error("Error getting profile after auth change:", err);
+            if (isMounted) {
+              toast.error("Failed to load profile data");
+            }
           }
         }
         
         // Set loading to false after auth state change is processed
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          authStateInitialized = true;
+        }
       }
     );
 
@@ -51,6 +59,7 @@ export const useAuthState = (
         if (error) {
           console.error("Error getting session:", error);
           setError(error.message);
+          toast.error("Authentication error: " + error.message);
           setLoading(false);
         } else {
           console.log("Initial session:", initialSession);
@@ -62,15 +71,22 @@ export const useAuthState = (
               await getProfile(initialSession.user.id);
             } catch (err) {
               console.error("Error getting profile on init:", err);
+              if (isMounted) {
+                toast.error("Failed to load profile data");
+              }
             }
           }
           
           // Only set loading to false after everything is done
-          setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+            authStateInitialized = true;
+          }
         }
       } catch (err) {
         if (!isMounted) return;
         console.error("Error initializing auth:", err);
+        toast.error("Authentication initialization error");
         setLoading(false);
       }
     };
@@ -78,10 +94,19 @@ export const useAuthState = (
     // Run initialization
     initializeAuth();
 
+    // Add a safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && !authStateInitialized) {
+        console.warn("Auth initialization timed out");
+        setLoading(false);
+      }
+    }, 5000); // 5 seconds safety timeout
+
     // Cleanup function
     return () => {
       console.log("Auth state hook cleaning up");
       isMounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []); // Empty dependency array to run only on mount
