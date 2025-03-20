@@ -1,5 +1,5 @@
 
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useState } from "react";
 import { useProfileOperations } from "./useProfileOperations";
 import { useAuthOperations } from "./useAuthOperations";
 import { useAuthState } from "./useAuthState";
@@ -43,6 +43,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     return updateProfile(user.id, profileData);
   };
+
+  // For debugging purposes
+  const [initialized] = useState(true);
+  console.log("AuthProvider initialized:", initialized, "user:", user?.email, "loading:", loading);
 
   return (
     <AuthContext.Provider

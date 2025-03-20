@@ -28,12 +28,6 @@ export const useAuthState = (
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
-        // Set loading to false after updating auth state
-        // Profile fetching can happen in the background
-        if (isMounted) {
-          setLoading(false);
-        }
-        
         // Fetch profile in the background if user exists
         if (currentSession?.user && isMounted) {
           try {
@@ -45,6 +39,11 @@ export const useAuthState = (
               toast.error("Profile data could not be loaded");
             }
           }
+        }
+        
+        // Set loading to false after handling the auth state change
+        if (isMounted) {
+          setLoading(false);
         }
       }
     );
@@ -61,17 +60,10 @@ export const useAuthState = (
           console.error("Error getting session:", error);
           setError(error.message);
           toast.error("Authentication error: " + error.message);
-          setLoading(false);
         } else {
           console.log("Initial session:", initialSession);
           setSession(initialSession);
           setUser(initialSession?.user || null);
-          
-          // Set loading to false after setting the session
-          // regardless of whether we have a user or not
-          if (isMounted) {
-            setLoading(false);
-          }
           
           // Fetch profile in the background if user exists
           if (initialSession?.user && isMounted) {
@@ -83,11 +75,18 @@ export const useAuthState = (
             });
           }
         }
+        
+        // Set loading to false after initialization is complete
+        if (isMounted) {
+          setLoading(false);
+        }
       } catch (err) {
         if (!isMounted) return;
         console.error("Error initializing auth:", err);
         setError("Authentication initialization error");
         toast.error("Authentication initialization error");
+        
+        // Ensure loading is set to false even if an error occurs
         setLoading(false);
       }
     };
@@ -95,19 +94,10 @@ export const useAuthState = (
     // Run initialization
     initializeAuth();
 
-    // Add a safety timeout to prevent infinite loading - shorter timeout
-    const safetyTimeout = setTimeout(() => {
-      if (isMounted) {
-        console.warn("Auth initialization safety timeout triggered");
-        setLoading(false);
-      }
-    }, 2000); // Reduced from 3 seconds to 2 seconds
-
     // Cleanup function
     return () => {
       console.log("Auth state hook cleaning up");
       isMounted = false;
-      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []); // Empty dependency array to run only on mount

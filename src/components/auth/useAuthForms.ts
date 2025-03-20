@@ -27,9 +27,17 @@ export const useAuthForms = () => {
     
     // If user is already logged in, redirect to dashboard
     if (user) {
+      console.log("User already logged in, redirecting to dashboard");
       navigate("/dashboard");
     }
   }, [location, user, navigate]);
+  
+  // Clear form error when auth context error changes
+  useEffect(() => {
+    if (error) {
+      setFormError(error);
+    }
+  }, [error]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +48,7 @@ export const useAuthForms = () => {
       if (resetPasswordMode) {
         if (!email.trim()) {
           setFormError("Please enter your email address");
+          setIsSubmitting(false);
           return;
         }
         
@@ -49,6 +58,7 @@ export const useAuthForms = () => {
       } else if (isSignIn) {
         if (!email.trim() || !password.trim()) {
           setFormError("Please enter both email and password");
+          setIsSubmitting(false);
           return;
         }
         
@@ -58,6 +68,7 @@ export const useAuthForms = () => {
       } else {
         if (!email.trim() || !password.trim() || !name.trim() || !company.trim()) {
           setFormError("Please fill in all fields");
+          setIsSubmitting(false);
           return;
         }
         
@@ -86,6 +97,7 @@ export const useAuthForms = () => {
     try {
       await resetPassword(email);
       toast.success("Password reset email sent. Please check your inbox.");
+      setResetPasswordMode(false);
     } catch (err) {
       console.error("Reset password error:", err);
       setFormError(error || "Failed to send reset email. Please try again.");

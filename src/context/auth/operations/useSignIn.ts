@@ -33,11 +33,20 @@ export const useSignIn = () => {
       }
       
       console.log("Sign in successful:", data);
-      setSession(data.session);
-      setUser(data.user);
       
-      if (data.user) {
-        await getProfile(data.user.id);
+      // Ensure we have session and user data before updating state
+      if (data && data.session) {
+        setSession(data.session);
+        setUser(data.user);
+        
+        if (data.user) {
+          await getProfile(data.user.id);
+        }
+      } else {
+        console.error("Sign in succeeded but no session data returned");
+        setError("Authentication error: No session data");
+        toast.error("Authentication error: Please try again");
+        return Promise.reject(new Error("No session data"));
       }
       
       return Promise.resolve();
