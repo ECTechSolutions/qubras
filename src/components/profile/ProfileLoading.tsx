@@ -4,21 +4,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 const ProfileLoading = () => {
   const [loadingTooLong, setLoadingTooLong] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [progressValue, setProgressValue] = useState(0);
   
   useEffect(() => {
     // Set a timeout to detect if loading takes too long
     const timeoutId = setTimeout(() => {
       setLoadingTooLong(true);
-    }, 3000); // 3 seconds
+    }, 5000); // 5 seconds
     
     // Set up a timer to show how long we've been loading
     const intervalId = setInterval(() => {
-      setSecondsElapsed(prev => prev + 1);
+      setSecondsElapsed(prev => {
+        const newValue = prev + 1;
+        // Update progress bar - max out at 90% to indicate we're still waiting
+        setProgressValue(Math.min(90, newValue * 3)); 
+        return newValue;
+      });
     }, 1000);
     
     return () => {
@@ -29,11 +36,12 @@ const ProfileLoading = () => {
 
   const handleRetry = () => {
     setIsRetrying(true);
+    console.log("Profile loading retry initiated");
     
     // Set a short timeout to allow UI to update before reload
     setTimeout(() => {
       window.location.reload();
-    }, 300); // Short delay to show loading indicator
+    }, 500); // Short delay to show loading indicator
   };
 
   return (
@@ -53,13 +61,18 @@ const ProfileLoading = () => {
             </div>
             <Skeleton className="h-6 w-48" />
             <Skeleton className="h-4 w-64" />
+            
+            <div className="w-full max-w-md mt-4">
+              <Progress value={progressValue} className="h-2" />
+            </div>
+            
             <div className="animate-pulse flex flex-col items-center">
               <p className="text-center text-muted-foreground">
                 Please wait while we load your profile...
               </p>
               <p className="text-center text-xs text-muted-foreground mt-2">
                 {loadingTooLong 
-                  ? "Loading is taking longer than expected." 
+                  ? "Loading is taking longer than expected. You may need to retry." 
                   : "If this takes longer than expected, try refreshing the page."}
               </p>
             </div>

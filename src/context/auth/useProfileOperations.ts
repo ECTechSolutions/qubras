@@ -46,11 +46,15 @@ export const useProfileOperations = () => {
           return null;
         }
         
-        // Create a minimal profile to prevent UI issues
+        // Create a profile with required fields
         const newProfile = {
           id: userId,
-          name: checkAuth.data.user?.user_metadata?.name || "User",
+          name: checkAuth.data.user?.user_metadata?.name || 
+                checkAuth.data.user?.email?.split('@')[0] || 
+                "User",
           company: checkAuth.data.user?.user_metadata?.company || "Company",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         } as Profile;
         
         console.log("Creating missing profile:", newProfile);
@@ -120,7 +124,9 @@ export const useProfileOperations = () => {
             id: userId,
             // Ensure required fields have defaults
             name: profileData.name || 'User',
-            company: profileData.company || 'Company'
+            company: profileData.company || 'Company',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select()
           .maybeSingle();
@@ -138,7 +144,10 @@ export const useProfileOperations = () => {
         // Update existing profile
         const { error: updateError, data: updatedProfile } = await supabase
           .from('profiles')
-          .update(profileData)
+          .update({
+            ...profileData,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', userId)
           .select()
           .maybeSingle();

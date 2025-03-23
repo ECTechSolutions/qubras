@@ -48,8 +48,8 @@ export const useAuthOperations = (
     setLoading(true);
     setError(null);
     try {
-      // Pass the getProfile function directly since we've updated the signature in useSignIn
       await signInOperation(email, password, getProfile, setUser, setSession);
+      console.log("Sign in operation completed successfully");
     } catch (error: any) {
       setError(error.message || "Failed to sign in");
       throw error;
@@ -76,6 +76,7 @@ export const useAuthOperations = (
     setLoading(true);
     setError(null);
     try {
+      console.log("Starting sign out process");
       // First clear all auth state
       setUser(null);
       setSession(null);

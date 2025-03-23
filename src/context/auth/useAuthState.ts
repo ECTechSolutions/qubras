@@ -32,28 +32,59 @@ export const useAuthState = (
         // For sign_in and token_refreshed events, fetch the profile
         if (currentSession?.user && ["SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED"].includes(event.toUpperCase())) {
           try {
-            const profileResult = await getProfile(currentSession.user.id);
+            const userId = currentSession.user.id;
+            console.log(`Attempting to load profile for ${event} event, user ID: ${userId}`);
+            
+            const profileResult = await getProfile(userId);
+            
             if (!profileResult && isMounted) {
-              console.warn("Could not load profile after auth event:", event);
-              // We'll try one more time after a short delay
-              setTimeout(async () => {
-                if (isMounted) {
-                  try {
-                    await getProfile(currentSession.user.id);
-                  } catch (retryErr) {
-                    console.error("Retry profile load failed:", retryErr);
-                  } finally {
-                    if (isMounted) setLoading(false);
-                  }
+              console.warn(`Profile load failed after ${event} event, will retry`);
+              
+              // Try multiple times with increasing delays
+              let retryAttempt = 0;
+              const maxRetries = 3;
+              
+              const attemptProfileLoad = async () => {
+                if (!isMounted || retryAttempt >= maxRetries) {
+                  console.log(`Profile loading stopped: isMounted=${isMounted}, retryAttempt=${retryAttempt}`);
+                  if (isMounted) setLoading(false);
+                  return;
                 }
-              }, 1000);
-              return; // We'll set loading to false in the retry
+                
+                retryAttempt++;
+                const delay = retryAttempt * 1000; // Increasing delay
+                
+                console.log(`Retry ${retryAttempt}/${maxRetries} for profile load in ${delay}ms`);
+                
+                setTimeout(async () => {
+                  try {
+                    const retryResult = await getProfile(userId);
+                    if (!retryResult && isMounted && retryAttempt < maxRetries) {
+                      attemptProfileLoad(); // Try again if still failed
+                    } else {
+                      if (isMounted) setLoading(false);
+                    }
+                  } catch (err) {
+                    console.error(`Error in profile retry attempt ${retryAttempt}:`, err);
+                    if (isMounted && retryAttempt < maxRetries) {
+                      attemptProfileLoad(); // Try again after error
+                    } else {
+                      if (isMounted) setLoading(false);
+                    }
+                  }
+                }, delay);
+              };
+              
+              attemptProfileLoad();
+              return; // We'll set loading to false in the retry chain
             }
           } catch (err) {
             console.error("Error getting profile after auth change:", err);
             if (isMounted) {
               setError("Profile data could not be loaded");
+              setLoading(false);
             }
+            return;
           }
         }
         
@@ -94,24 +125,52 @@ export const useAuthState = (
         
         // Fetch profile if user exists
         if (initialSession?.user && isMounted) {
+          const userId = initialSession.user.id;
+          console.log(`Loading profile for user ID: ${userId} during initialization`);
+          
           try {
-            const profileResult = await getProfile(initialSession.user.id);
+            const profileResult = await getProfile(userId);
+            
             if (!profileResult && isMounted) {
-              console.warn("Could not load profile on initialization");
+              console.warn("Initial profile load failed, will retry");
               
-              // Try one more time after a short delay
-              setTimeout(async () => {
-                if (isMounted) {
-                  try {
-                    await getProfile(initialSession.user.id);
-                  } catch (retryErr) {
-                    console.error("Retry profile load failed:", retryErr);
-                  } finally {
-                    if (isMounted) setLoading(false);
-                  }
+              // Try multiple times with increasing delays
+              let retryAttempt = 0;
+              const maxRetries = 3;
+              
+              const attemptProfileLoad = async () => {
+                if (!isMounted || retryAttempt >= maxRetries) {
+                  console.log(`Initial profile loading stopped: isMounted=${isMounted}, retryAttempt=${retryAttempt}`);
+                  if (isMounted) setLoading(false);
+                  return;
                 }
-              }, 1000);
-              return; // We'll set loading to false in the retry
+                
+                retryAttempt++;
+                const delay = retryAttempt * 1000; // Increasing delay
+                
+                console.log(`Initial retry ${retryAttempt}/${maxRetries} for profile load in ${delay}ms`);
+                
+                setTimeout(async () => {
+                  try {
+                    const retryResult = await getProfile(userId);
+                    if (!retryResult && isMounted && retryAttempt < maxRetries) {
+                      attemptProfileLoad(); // Try again if still failed
+                    } else {
+                      if (isMounted) setLoading(false);
+                    }
+                  } catch (err) {
+                    console.error(`Error in initial profile retry attempt ${retryAttempt}:`, err);
+                    if (isMounted && retryAttempt < maxRetries) {
+                      attemptProfileLoad(); // Try again after error
+                    } else {
+                      if (isMounted) setLoading(false);
+                    }
+                  }
+                }, delay);
+              };
+              
+              attemptProfileLoad();
+              return; // We'll set loading to false in the retry chain
             }
           } catch (err) {
             console.error("Error getting profile on init:", err);

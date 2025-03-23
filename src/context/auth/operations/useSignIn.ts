@@ -49,14 +49,14 @@ export const useSignIn = () => {
       
       // Fetch profile data
       try {
-        const profileData = await getProfile(data.user.id);
-        console.log("Profile data after sign in:", profileData ? "loaded" : "failed to load");
+        await getProfile(data.user.id);
+        console.log("Profile loading attempt completed after sign in");
       } catch (profileError) {
-        console.error("Error fetching profile:", profileError);
+        console.error("Error fetching profile after sign in:", profileError);
         // Continue even if profile fetch fails - we already have the user logged in
       }
       
-      return Promise.resolve();
+      return data.user.id;
     } catch (err) {
       const authError = err as AuthError;
       console.error("Sign in exception:", authError);
