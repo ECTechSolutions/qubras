@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthError } from "@supabase/supabase-js";
@@ -11,11 +10,12 @@ export const useSignIn = () => {
   const signIn = async (
     email: string, 
     password: string, 
-    getProfile: (userId: string) => Promise<void>,
+    getProfile: (userId: string) => Promise<void>, // Keep as void for compatibility
     setUser: (user: any) => void,
     setSession: (session: any) => void
   ) => {
     try {
+      
       setIsLoading(true);
       setError(null);
       
