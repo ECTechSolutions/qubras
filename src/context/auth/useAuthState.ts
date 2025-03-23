@@ -35,6 +35,19 @@ export const useAuthState = (
             const profileResult = await getProfile(currentSession.user.id);
             if (!profileResult && isMounted) {
               console.warn("Could not load profile after auth event:", event);
+              // We'll try one more time after a short delay
+              setTimeout(async () => {
+                if (isMounted) {
+                  try {
+                    await getProfile(currentSession.user.id);
+                  } catch (retryErr) {
+                    console.error("Retry profile load failed:", retryErr);
+                  } finally {
+                    if (isMounted) setLoading(false);
+                  }
+                }
+              }, 1000);
+              return; // We'll set loading to false in the retry
             }
           } catch (err) {
             console.error("Error getting profile after auth change:", err);
@@ -83,8 +96,22 @@ export const useAuthState = (
         if (initialSession?.user && isMounted) {
           try {
             const profileResult = await getProfile(initialSession.user.id);
-            if (!profileResult) {
+            if (!profileResult && isMounted) {
               console.warn("Could not load profile on initialization");
+              
+              // Try one more time after a short delay
+              setTimeout(async () => {
+                if (isMounted) {
+                  try {
+                    await getProfile(initialSession.user.id);
+                  } catch (retryErr) {
+                    console.error("Retry profile load failed:", retryErr);
+                  } finally {
+                    if (isMounted) setLoading(false);
+                  }
+                }
+              }, 1000);
+              return; // We'll set loading to false in the retry
             }
           } catch (err) {
             console.error("Error getting profile on init:", err);

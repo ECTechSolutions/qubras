@@ -1,27 +1,43 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/auth";
 import ProfileLoading from "@/components/profile/ProfileLoading";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 const Profile = () => {
   const { profile, user, loading, error, refreshProfile } = useAuth();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Attempt to refresh the profile if it's not available
   useEffect(() => {
-    if (user && !profile && !loading) {
-      console.log("Profile page: Profile not available, attempting to refresh");
-      refreshProfile().catch(err => {
-        console.error("Error refreshing profile:", err);
-        toast.error("Could not load your profile");
-      });
+    if (user && !profile && !loading && retryCount < 3) {
+      console.log(`Profile page: Profile not available, attempting to refresh (attempt ${retryCount + 1})`);
+      setIsRefreshing(true);
+      refreshProfile()
+        .then(profileResult => {
+          console.log("Profile refresh result:", profileResult ? "success" : "failed");
+          if (!profileResult) {
+            setRetryCount(prev => prev + 1);
+          }
+        })
+        .catch(err => {
+          console.error("Error refreshing profile:", err);
+          toast.error("Could not load your profile");
+          setRetryCount(prev => prev + 1);
+        })
+        .finally(() => {
+          setIsRefreshing(false);
+        });
     }
-  }, [user, profile, loading, refreshProfile]);
+  }, [user, profile, loading, refreshProfile, retryCount]);
 
-  // Handle loading state
-  if (loading) {
+  // Handle different states
+  if (loading || isRefreshing) {
     return <ProfileLoading />;
   }
 
@@ -31,12 +47,17 @@ const Profile = () => {
       <div className="container py-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Error Loading Profile</h2>
         <p className="text-muted-foreground mb-6">{error}</p>
-        <button 
-          onClick={() => refreshProfile()} 
-          className="px-4 py-2 bg-primary text-white rounded-md"
+        <Button 
+          onClick={() => {
+            setIsRefreshing(true);
+            refreshProfile()
+              .finally(() => setIsRefreshing(false));
+          }} 
+          className="gap-2"
         >
+          <RefreshCw className="h-4 w-4" />
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
@@ -47,14 +68,28 @@ const Profile = () => {
       <div className="container py-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Profile Not Available</h2>
         <p className="text-muted-foreground mb-6">
-          Please try signing out and signing back in.
+          We couldn't load your profile information.
         </p>
-        <button 
-          onClick={() => window.location.href = "/auth"} 
-          className="px-4 py-2 bg-primary text-white rounded-md"
-        >
-          Go to Login
-        </button>
+        <div className="flex gap-4 justify-center">
+          <Button 
+            onClick={() => {
+              setIsRefreshing(true);
+              setRetryCount(0);
+              refreshProfile()
+                .finally(() => setIsRefreshing(false));
+            }} 
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry Loading Profile
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => window.location.href = "/auth"} 
+          >
+            Go to Login
+          </Button>
+        </div>
       </div>
     );
   }

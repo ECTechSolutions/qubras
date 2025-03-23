@@ -1,7 +1,9 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthError } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { Profile } from "../types";
 
 export const useSignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,12 +12,11 @@ export const useSignIn = () => {
   const signIn = async (
     email: string, 
     password: string, 
-    getProfile: (userId: string) => Promise<void>, // Keep as void for compatibility
+    getProfile: (userId: string) => Promise<Profile | null>,
     setUser: (user: any) => void,
     setSession: (session: any) => void
   ) => {
     try {
-      
       setIsLoading(true);
       setError(null);
       
@@ -48,7 +49,8 @@ export const useSignIn = () => {
       
       // Fetch profile data
       try {
-        await getProfile(data.user.id);
+        const profileData = await getProfile(data.user.id);
+        console.log("Profile data after sign in:", profileData ? "loaded" : "failed to load");
       } catch (profileError) {
         console.error("Error fetching profile:", profileError);
         // Continue even if profile fetch fails - we already have the user logged in

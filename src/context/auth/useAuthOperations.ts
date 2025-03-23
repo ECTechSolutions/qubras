@@ -44,18 +44,12 @@ export const useAuthOperations = (
     }
   }, [user, getProfile]);
 
-  // Update the signIn function to handle the new getProfile return type
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
     try {
-      // Pass adapted getProfile function that matches the expected void return type
-      const adaptedGetProfile = async (userId: string): Promise<void> => {
-        await getProfile(userId);
-        return;
-      };
-      
-      await signInOperation(email, password, adaptedGetProfile, setUser, setSession);
+      // Pass the getProfile function directly since we've updated the signature in useSignIn
+      await signInOperation(email, password, getProfile, setUser, setSession);
     } catch (error: any) {
       setError(error.message || "Failed to sign in");
       throw error;

@@ -8,14 +8,23 @@ import { RefreshCw } from "lucide-react";
 const ProfileLoading = () => {
   const [loadingTooLong, setLoadingTooLong] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
   
   useEffect(() => {
     // Set a timeout to detect if loading takes too long
     const timeoutId = setTimeout(() => {
       setLoadingTooLong(true);
-    }, 3000); // 3 seconds is a more reasonable time
+    }, 3000); // 3 seconds
     
-    return () => clearTimeout(timeoutId);
+    // Set up a timer to show how long we've been loading
+    const intervalId = setInterval(() => {
+      setSecondsElapsed(prev => prev + 1);
+    }, 1000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
   }, []);
 
   const handleRetry = () => {
@@ -32,7 +41,7 @@ const ProfileLoading = () => {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Loading profile information...</CardDescription>
+          <CardDescription>Loading profile information... ({secondsElapsed}s)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col items-center py-8 space-y-4">

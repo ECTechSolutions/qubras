@@ -56,9 +56,11 @@ export const useProfileOperations = () => {
         console.log("Creating missing profile:", newProfile);
         
         // Insert the profile
-        const { error: insertError } = await supabase
+        const { error: insertError, data: insertData } = await supabase
           .from('profiles')
-          .insert(newProfile);
+          .insert(newProfile)
+          .select()
+          .maybeSingle();
           
         if (insertError) {
           console.error("Error creating profile:", insertError);
@@ -67,9 +69,9 @@ export const useProfileOperations = () => {
           return null;
         }
         
-        console.log("Profile created successfully");
-        setProfile(newProfile);
-        return newProfile;
+        console.log("Profile created successfully:", insertData);
+        setProfile(insertData as Profile);
+        return insertData as Profile;
       }
       
       console.log("Profile data loaded:", data);
@@ -111,7 +113,7 @@ export const useProfileOperations = () => {
       
       if (!existingProfile) {
         // Profile doesn't exist, create it
-        const { error: insertError } = await supabase
+        const { error: insertError, data: insertedProfile } = await supabase
           .from('profiles')
           .insert({ 
             ...profileData, 
@@ -119,31 +121,40 @@ export const useProfileOperations = () => {
             // Ensure required fields have defaults
             name: profileData.name || 'User',
             company: profileData.company || 'Company'
-          });
+          })
+          .select()
+          .maybeSingle();
           
         if (insertError) {
           console.error("Error creating profile:", insertError);
           toast.error("Failed to create profile");
           return false;
         }
+        
+        if (insertedProfile) {
+          setProfile(insertedProfile as Profile);
+        }
       } else {
         // Update existing profile
-        const { error: updateError } = await supabase
+        const { error: updateError, data: updatedProfile } = await supabase
           .from('profiles')
           .update(profileData)
-          .eq('id', userId);
+          .eq('id', userId)
+          .select()
+          .maybeSingle();
         
         if (updateError) {
           console.error("Update profile error:", updateError);
           toast.error(updateError.message);
           return false;
         }
+        
+        if (updatedProfile) {
+          setProfile(updatedProfile as Profile);
+        }
       }
       
       console.log("Profile updated successfully");
-      
-      // Refresh profile data
-      await getProfile(userId);
       toast.success("Profile updated successfully");
       
       return true;
