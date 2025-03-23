@@ -2,13 +2,14 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Profile } from "./types";
 
 export const useAuthState = (
   setLoading: (loading: boolean) => void,
   setError: (error: string | null) => void,
   setSession: (session: any) => void,
   setUser: (user: any) => void,
-  getProfile: (userId: string) => Promise<void>
+  getProfile: (userId: string) => Promise<Profile | null>
 ) => {
   useEffect(() => {
     let isMounted = true;
@@ -29,22 +30,26 @@ export const useAuthState = (
         setUser(currentSession?.user || null);
         
         // For sign_in and token_refreshed events, fetch the profile
-        if (currentSession?.user && ["SIGNED_IN", "TOKEN_REFRESHED"].includes(event.toUpperCase())) {
+        if (currentSession?.user && ["SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED"].includes(event.toUpperCase())) {
           try {
-            await getProfile(currentSession.user.id);
+            const profileResult = await getProfile(currentSession.user.id);
+            if (!profileResult && isMounted) {
+              console.warn("Could not load profile after auth event:", event);
+            }
           } catch (err) {
             console.error("Error getting profile after auth change:", err);
             if (isMounted) {
               setError("Profile data could not be loaded");
-              toast.error("Profile data could not be loaded");
             }
           }
         }
         
         // For sign_out events, ensure state is cleared
         if (event.toLowerCase() === 'signed_out') {
-          setUser(null);
-          setSession(null);
+          if (isMounted) {
+            setUser(null);
+            setSession(null);
+          }
         }
         
         // Set loading to false after handling the auth state change
@@ -66,21 +71,23 @@ export const useAuthState = (
           console.error("Error getting session:", error);
           setError(error.message);
           toast.error("Authentication error: " + error.message);
-        } else {
-          console.log("Initial session:", initialSession ? "exists" : "null");
-          setSession(initialSession);
-          setUser(initialSession?.user || null);
-          
-          // Fetch profile if user exists
-          if (initialSession?.user && isMounted) {
-            try {
-              await getProfile(initialSession.user.id);
-            } catch (err) {
-              console.error("Error getting profile on init:", err);
-              if (isMounted) {
-                toast.error("Failed to load profile data");
-              }
+          if (isMounted) setLoading(false);
+          return;
+        } 
+        
+        console.log("Initial session:", initialSession ? "exists" : "null");
+        setSession(initialSession);
+        setUser(initialSession?.user || null);
+        
+        // Fetch profile if user exists
+        if (initialSession?.user && isMounted) {
+          try {
+            const profileResult = await getProfile(initialSession.user.id);
+            if (!profileResult) {
+              console.warn("Could not load profile on initialization");
             }
+          } catch (err) {
+            console.error("Error getting profile on init:", err);
           }
         }
         
@@ -92,7 +99,6 @@ export const useAuthState = (
         if (!isMounted) return;
         console.error("Error initializing auth:", err);
         setError("Authentication initialization error");
-        toast.error("Authentication initialization error");
         setLoading(false);
       }
     };
@@ -104,7 +110,7 @@ export const useAuthState = (
     return () => {
       console.log("Auth state hook cleaning up");
       isMounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [getProfile, setError, setLoading, setSession, setUser]);
 };

@@ -6,79 +6,161 @@ import { toast } from "sonner";
 
 export const useProfileOperations = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
-  const getProfile = async (userId: string) => {
+  const getProfile = async (userId: string): Promise<Profile | null> => {
+    if (!userId) {
+      console.error("Cannot get profile: No user ID provided");
+      setProfileError("No user ID provided");
+      return null;
+    }
+
     try {
+      setProfileLoading(true);
+      setProfileError(null);
       console.log("Fetching profile for user:", userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single to prevent errors when no profile is found
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching profile:', error);
-        setProfile(null);
+        setProfileError(error.message);
         toast.error("Error loading profile");
-        return;
+        return null;
       }
       
       if (!data) {
         console.warn("No profile found for user:", userId);
-        // Create a minimal profile so the UI doesn't break
-        setProfile({
+        
+        // Check if we need to create a profile
+        const checkAuth = await supabase.auth.getUser();
+        
+        if (checkAuth.error) {
+          console.error("Error getting user:", checkAuth.error);
+          setProfileError("Authentication error");
+          return null;
+        }
+        
+        // Create a minimal profile to prevent UI issues
+        const newProfile = {
           id: userId,
-          name: "User",
-          company: "Company",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        } as Profile);
-        return;
+          name: checkAuth.data.user?.user_metadata?.name || "User",
+          company: checkAuth.data.user?.user_metadata?.company || "Company",
+        } as Profile;
+        
+        console.log("Creating missing profile:", newProfile);
+        
+        // Insert the profile
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert(newProfile);
+          
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          setProfileError(insertError.message);
+          toast.error("Failed to create profile");
+          return null;
+        }
+        
+        console.log("Profile created successfully");
+        setProfile(newProfile);
+        return newProfile;
       }
       
-      console.log("Profile data:", data);
+      console.log("Profile data loaded:", data);
       setProfile(data as Profile);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setProfile(null);
+      return data as Profile;
+    } catch (error: any) {
+      console.error('Error in profile operations:', error);
+      setProfileError(error.message);
       toast.error("Failed to load profile");
+      return null;
+    } finally {
+      setProfileLoading(false);
     }
   };
 
-  const updateProfile = async (userId: string, profileData: Partial<Profile>) => {
+  const updateProfile = async (userId: string, profileData: Partial<Profile>): Promise<boolean> => {
     if (!userId) {
       console.error("Cannot update profile: No authenticated user");
-      return Promise.reject(new Error("User not authenticated"));
+      toast.error("No authenticated user");
+      return false;
     }
     
     try {
+      setProfileLoading(true);
       console.log("Updating profile for user:", userId, profileData);
-      const { error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', userId);
       
-      if (error) {
-        console.error("Update profile error:", error);
-        toast.error(error.message);
-        return Promise.reject(error);
+      // Check if profile exists first
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error("Error checking profile:", checkError);
+        toast.error("Error updating profile");
+        return false;
+      }
+      
+      if (!existingProfile) {
+        // Profile doesn't exist, create it
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({ 
+            ...profileData, 
+            id: userId,
+            // Ensure required fields have defaults
+            name: profileData.name || 'User',
+            company: profileData.company || 'Company'
+          });
+          
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          toast.error("Failed to create profile");
+          return false;
+        }
+      } else {
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update(profileData)
+          .eq('id', userId);
+        
+        if (updateError) {
+          console.error("Update profile error:", updateError);
+          toast.error(updateError.message);
+          return false;
+        }
       }
       
       console.log("Profile updated successfully");
+      
       // Refresh profile data
       await getProfile(userId);
+      toast.success("Profile updated successfully");
       
-      return Promise.resolve();
+      return true;
     } catch (err: any) {
       console.error("Update profile exception:", err);
-      toast.error(err.message);
-      return Promise.reject(err);
+      toast.error(err.message || "Error updating profile");
+      return false;
+    } finally {
+      setProfileLoading(false);
     }
   };
 
   return {
     profile,
     setProfile,
+    profileLoading,
+    profileError,
     getProfile,
     updateProfile
   };

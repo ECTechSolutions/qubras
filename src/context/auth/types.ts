@@ -9,6 +9,8 @@ export interface Profile {
   industry?: string;
   website?: string;
   bio?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AuthContextType {
@@ -23,4 +25,5 @@ export interface AuthContextType {
   socialSignIn: (provider: "google" | "github") => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }

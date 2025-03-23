@@ -13,7 +13,7 @@ const ProfileLoading = () => {
     // Set a timeout to detect if loading takes too long
     const timeoutId = setTimeout(() => {
       setLoadingTooLong(true);
-    }, 5000); // 5 seconds
+    }, 3000); // 3 seconds is a more reasonable time
     
     return () => clearTimeout(timeoutId);
   }, []);

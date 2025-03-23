@@ -1,13 +1,17 @@
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { useSignIn } from "./operations/useSignIn";
 import { useSignUp } from "./operations/useSignUp";
 import { useSignOut } from "./operations/useSignOut";
 import { useSocialAuth } from "./operations/useSocialAuth";
 import { usePasswordReset } from "./operations/usePasswordReset";
+import { toast } from "sonner";
+import { Profile } from "./types";
 
-export const useAuthOperations = (getProfile: (userId: string) => Promise<void>) => {
+export const useAuthOperations = (
+  getProfile: (userId: string) => Promise<Profile | null>
+) => {
   // Main state
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -21,19 +25,32 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
   const { socialSignIn: socialSignInOperation, error: socialSignInError } = useSocialAuth();
   const { resetPassword: resetPasswordOperation, error: resetPasswordError } = usePasswordReset();
 
-  // Combine errors from all operations
-  useEffect(() => {
-    const operationError = signInError || signUpError || signOutError || socialSignInError || resetPasswordError;
-    if (operationError) {
-      setError(operationError);
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) {
+      console.log("Cannot refresh profile - no user ID available");
+      return;
     }
-  }, [signInError, signUpError, signOutError, socialSignInError, resetPasswordError]);
+    
+    setLoading(true);
+    try {
+      console.log("Refreshing profile for user:", user.id);
+      await getProfile(user.id);
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, getProfile]);
 
   // Wrapped operations
   const signIn = async (email: string, password: string) => {
     setLoading(true);
+    setError(null);
     try {
       await signInOperation(email, password, getProfile, setUser, setSession);
+    } catch (error: any) {
+      setError(error.message || "Failed to sign in");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -41,8 +58,13 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
 
   const signUp = async (email: string, password: string, name: string, company: string) => {
     setLoading(true);
+    setError(null);
     try {
       await signUpOperation(email, password, name, company);
+      toast.success("Account created! Please check your email to verify your account.");
+    } catch (error: any) {
+      setError(error.message || "Failed to sign up");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -50,6 +72,7 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
 
   const signOut = async () => {
     setLoading(true);
+    setError(null);
     try {
       // First clear all auth state
       setUser(null);
@@ -57,8 +80,12 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
       
       // Then perform Supabase signOut
       await signOutOperation();
-    } catch (error) {
+      
+      // Force page reload for clean state
+      window.location.href = "/";
+    } catch (error: any) {
       console.error("Error in signOut operation:", error);
+      setError(error.message || "Failed to sign out");
       throw error;
     } finally {
       setLoading(false);
@@ -67,8 +94,12 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
 
   const socialSignIn = async (provider: "google" | "github") => {
     setLoading(true);
+    setError(null);
     try {
       await socialSignInOperation(provider);
+    } catch (error: any) {
+      setError(error.message || "Failed to sign in with social provider");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -76,8 +107,12 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
 
   const resetPassword = async (email: string) => {
     setLoading(true);
+    setError(null);
     try {
       await resetPasswordOperation(email);
+    } catch (error: any) {
+      setError(error.message || "Failed to reset password");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -96,6 +131,7 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
     signUp,
     signOut,
     socialSignIn,
-    resetPassword
+    resetPassword,
+    refreshProfile
   };
 };

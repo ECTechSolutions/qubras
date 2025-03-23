@@ -1,5 +1,5 @@
 
-import { createContext, useContext, ReactNode, useState, useCallback } from "react";
+import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from "react";
 import { useProfileOperations } from "./useProfileOperations";
 import { useAuthOperations } from "./useAuthOperations";
 import { useAuthState } from "./useAuthState";
@@ -16,28 +16,47 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { profile, setProfile, getProfile, updateProfile } = useProfileOperations();
+  const { 
+    profile, 
+    setProfile, 
+    profileLoading,
+    profileError,
+    getProfile, 
+    updateProfile 
+  } = useProfileOperations();
   
   const memoizedGetProfile = useCallback(getProfile, [getProfile]);
   
   const {
     user,
     session,
-    loading,
-    error,
+    loading: authLoading,
+    error: authError,
     setUser,
     setSession,
-    setLoading,
-    setError,
+    setLoading: setAuthLoading,
+    setError: setAuthError,
     signIn,
     signUp,
     signOut,
     socialSignIn,
-    resetPassword
+    resetPassword,
+    refreshProfile: refreshProfileOp
   } = useAuthOperations(memoizedGetProfile);
 
+  // Combined loading state
+  const [loading, setLoading] = useState(true);
+  
+  // Update combined loading state when auth or profile loading changes
+  useEffect(() => {
+    setLoading(authLoading || profileLoading);
+  }, [authLoading, profileLoading]);
+  
+  // Combined error state
+  const error = authError || profileError;
+
   // Initialize auth state
-  useAuthState(setLoading, setError, setSession, setUser, memoizedGetProfile);
+  useAuthState(setAuthLoading, setAuthError, setSession, setUser, memoizedGetProfile);
 
   const handleUpdateProfile = async (profileData: Partial<typeof profile>) => {
     if (!user) {
@@ -45,17 +64,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     return updateProfile(user.id, profileData);
   };
+  
+  const refreshProfile = async () => {
+    await refreshProfileOp();
+  };
 
   // For debugging purposes
   const [initialized] = useState(true);
-  console.log("AuthProvider state:", { 
-    initialized, 
-    userEmail: user?.email,
-    hasSession: !!session,
-    loading,
-    hasProfile: !!profile,
-    error: error || "none"
-  });
+  
+  useEffect(() => {
+    console.log("AuthProvider state:", { 
+      initialized, 
+      userEmail: user?.email,
+      hasSession: !!session,
+      loading,
+      authLoading,
+      profileLoading,
+      hasProfile: !!profile,
+      error: error || "none"
+    });
+  }, [initialized, user, session, loading, authLoading, profileLoading, profile, error]);
 
   return (
     <AuthContext.Provider
@@ -71,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         socialSignIn,
         resetPassword,
         updateProfile: handleUpdateProfile,
+        refreshProfile
       }}
     >
       {children}
