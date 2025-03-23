@@ -24,6 +24,6 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   socialSignIn: (provider: "google" | "github") => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updateProfile: (profile: Partial<Profile>) => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  updateProfile: (profile: Partial<Profile>) => Promise<boolean>; // Changed to return boolean
+  refreshProfile: () => Promise<Profile | null>; // Changed to return Profile | null
 }

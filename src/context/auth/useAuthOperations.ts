@@ -28,15 +28,17 @@ export const useAuthOperations = (
   const refreshProfile = useCallback(async () => {
     if (!user?.id) {
       console.log("Cannot refresh profile - no user ID available");
-      return;
+      return null;
     }
     
     setLoading(true);
     try {
       console.log("Refreshing profile for user:", user.id);
-      await getProfile(user.id);
+      const profile = await getProfile(user.id);
+      return profile;
     } catch (error) {
       console.error("Error refreshing profile:", error);
+      return null;
     } finally {
       setLoading(false);
     }

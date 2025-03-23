@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const refreshProfile = async () => {
-    await refreshProfileOp();
+    return refreshProfileOp();
   };
 
   // For debugging purposes
