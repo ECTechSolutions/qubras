@@ -22,15 +22,11 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
   const { resetPassword: resetPasswordOperation, error: resetPasswordError } = usePasswordReset();
 
   // Combine errors from all operations
-  const updateError = (operationError: string | null) => {
+  useEffect(() => {
+    const operationError = signInError || signUpError || signOutError || socialSignInError || resetPasswordError;
     if (operationError) {
       setError(operationError);
     }
-  };
-
-  // Watch for errors from individual operations
-  useEffect(() => {
-    updateError(signInError || signUpError || signOutError || socialSignInError || resetPasswordError);
   }, [signInError, signUpError, signOutError, socialSignInError, resetPasswordError]);
 
   // Wrapped operations
@@ -55,15 +51,12 @@ export const useAuthOperations = (getProfile: (userId: string) => Promise<void>)
   const signOut = async () => {
     setLoading(true);
     try {
-      // First clear React state
+      // First clear all auth state
       setUser(null);
       setSession(null);
       
       // Then perform Supabase signOut
       await signOutOperation();
-      
-      // Return success to continue the chain
-      return true;
     } catch (error) {
       console.error("Error in signOut operation:", error);
       throw error;

@@ -19,7 +19,7 @@ export interface AuthContextType {
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string, company: string) => Promise<void>;
-  signOut: () => Promise<boolean>; // Updated return type from void to boolean
+  signOut: () => Promise<void>;
   socialSignIn: (provider: "google" | "github") => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;

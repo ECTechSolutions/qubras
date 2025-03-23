@@ -42,13 +42,13 @@ export const useAuthForms = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    setIsSubmitting(true);
     
     try {
+      setIsSubmitting(true);
+      
       if (resetPasswordMode) {
         if (!email.trim()) {
           setFormError("Please enter your email address");
-          setIsSubmitting(false);
           return;
         }
         
@@ -58,17 +58,17 @@ export const useAuthForms = () => {
       } else if (isSignIn) {
         if (!email.trim() || !password.trim()) {
           setFormError("Please enter both email and password");
-          setIsSubmitting(false);
           return;
         }
         
+        console.log("Attempting sign in from form");
         await signIn(email, password);
+        console.log("Sign in successful, navigating to dashboard");
         toast.success("Welcome back!");
         navigate("/dashboard");
       } else {
         if (!email.trim() || !password.trim() || !name.trim() || !company.trim()) {
           setFormError("Please fill in all fields");
-          setIsSubmitting(false);
           return;
         }
         
@@ -115,7 +115,6 @@ export const useAuthForms = () => {
     } catch (err) {
       console.error(`${provider} sign in error:`, err);
       setFormError(error || `Failed to sign in with ${provider}. Please try again.`);
-    } finally {
       setIsSubmitting(false);
     }
   };

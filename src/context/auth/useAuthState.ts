@@ -12,15 +12,15 @@ export const useAuthState = (
 ) => {
   useEffect(() => {
     let isMounted = true;
-    console.log("Auth state hook initialized");
+    console.log("Auth state hook initializing");
     
     // Initialize loading state
     if (isMounted) setLoading(true);
     
-    // Set up supabase auth state listener first
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log("Auth state changed:", event, currentSession);
+        console.log("Auth state changed:", event, "Session:", currentSession ? "exists" : "null");
         
         if (!isMounted) return;
         
@@ -28,8 +28,8 @@ export const useAuthState = (
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
-        // Fetch profile in the background if user exists
-        if (currentSession?.user && isMounted) {
+        // For sign_in and token_refreshed events, fetch the profile
+        if (currentSession?.user && ["SIGNED_IN", "TOKEN_REFRESHED"].includes(event.toUpperCase())) {
           try {
             await getProfile(currentSession.user.id);
           } catch (err) {
@@ -41,6 +41,12 @@ export const useAuthState = (
           }
         }
         
+        // For sign_out events, ensure state is cleared
+        if (event.toLowerCase() === 'signed_out') {
+          setUser(null);
+          setSession(null);
+        }
+        
         // Set loading to false after handling the auth state change
         if (isMounted) {
           setLoading(false);
@@ -48,7 +54,7 @@ export const useAuthState = (
       }
     );
 
-    // Get initial session after setting up the listener
+    // Get initial session
     const initializeAuth = async () => {
       try {
         console.log("Getting initial session");
@@ -61,18 +67,20 @@ export const useAuthState = (
           setError(error.message);
           toast.error("Authentication error: " + error.message);
         } else {
-          console.log("Initial session:", initialSession);
+          console.log("Initial session:", initialSession ? "exists" : "null");
           setSession(initialSession);
           setUser(initialSession?.user || null);
           
-          // Fetch profile in the background if user exists
+          // Fetch profile if user exists
           if (initialSession?.user && isMounted) {
-            getProfile(initialSession.user.id).catch(err => {
+            try {
+              await getProfile(initialSession.user.id);
+            } catch (err) {
               console.error("Error getting profile on init:", err);
               if (isMounted) {
                 toast.error("Failed to load profile data");
               }
-            });
+            }
           }
         }
         
@@ -85,8 +93,6 @@ export const useAuthState = (
         console.error("Error initializing auth:", err);
         setError("Authentication initialization error");
         toast.error("Authentication initialization error");
-        
-        // Ensure loading is set to false even if an error occurs
         setLoading(false);
       }
     };
@@ -100,5 +106,5 @@ export const useAuthState = (
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty dependency array to run only on mount
+  }, [getProfile, setError, setLoading, setSession, setUser]);
 };

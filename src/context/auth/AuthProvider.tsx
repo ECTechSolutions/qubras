@@ -1,5 +1,5 @@
 
-import { createContext, useContext, ReactNode, useState } from "react";
+import { createContext, useContext, ReactNode, useState, useCallback } from "react";
 import { useProfileOperations } from "./useProfileOperations";
 import { useAuthOperations } from "./useAuthOperations";
 import { useAuthState } from "./useAuthState";
@@ -18,6 +18,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { profile, setProfile, getProfile, updateProfile } = useProfileOperations();
   
+  const memoizedGetProfile = useCallback(getProfile, [getProfile]);
+  
   const {
     user,
     session,
@@ -32,10 +34,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut,
     socialSignIn,
     resetPassword
-  } = useAuthOperations(getProfile);
+  } = useAuthOperations(memoizedGetProfile);
 
   // Initialize auth state
-  useAuthState(setLoading, setError, setSession, setUser, getProfile);
+  useAuthState(setLoading, setError, setSession, setUser, memoizedGetProfile);
 
   const handleUpdateProfile = async (profileData: Partial<typeof profile>) => {
     if (!user) {
@@ -46,7 +48,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // For debugging purposes
   const [initialized] = useState(true);
-  console.log("AuthProvider initialized:", initialized, "user:", user?.email, "loading:", loading);
+  console.log("AuthProvider state:", { 
+    initialized, 
+    userEmail: user?.email,
+    hasSession: !!session,
+    loading,
+    hasProfile: !!profile,
+    error: error || "none"
+  });
 
   return (
     <AuthContext.Provider

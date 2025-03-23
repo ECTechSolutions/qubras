@@ -20,12 +20,12 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
     
     try {
       setIsLoggingOut(true);
-      console.log("Starting logout process");
+      console.log("Starting logout process from UI");
       
       await signOut();
       console.log("Logout successful, redirecting to landing page");
       
-      // Force a full browser navigation to completely reset application state
+      // Force hard reload and navigation to root
       window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);

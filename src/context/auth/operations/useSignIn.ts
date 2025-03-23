@@ -20,33 +20,38 @@ export const useSignIn = () => {
       setError(null);
       
       console.log("Signing in with email:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) {
-        console.error("Sign in error:", error);
-        setError(error.message);
-        toast.error(error.message);
-        return Promise.reject(error);
+      if (signInError) {
+        console.error("Sign in error:", signInError);
+        setError(signInError.message);
+        toast.error(signInError.message);
+        return Promise.reject(signInError);
       }
       
-      console.log("Sign in successful:", data);
-      
-      // Ensure we have session and user data before updating state
-      if (data && data.session) {
-        setSession(data.session);
-        setUser(data.user);
-        
-        if (data.user) {
-          await getProfile(data.user.id);
-        }
-      } else {
-        console.error("Sign in succeeded but no session data returned");
-        setError("Authentication error: No session data");
+      if (!data || !data.session || !data.user) {
+        const missingDataError = new Error("Sign-in succeeded but required data is missing");
+        console.error(missingDataError);
+        setError("Authentication error: Missing session data");
         toast.error("Authentication error: Please try again");
-        return Promise.reject(new Error("No session data"));
+        return Promise.reject(missingDataError);
+      }
+      
+      console.log("Sign in successful:", data.user.email);
+      
+      // Update state
+      setSession(data.session);
+      setUser(data.user);
+      
+      // Fetch profile data
+      try {
+        await getProfile(data.user.id);
+      } catch (profileError) {
+        console.error("Error fetching profile:", profileError);
+        // Continue even if profile fetch fails - we already have the user logged in
       }
       
       return Promise.resolve();
